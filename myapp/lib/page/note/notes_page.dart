@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/page/widget/common/side_nav.dart';
-import '../../db/note/notes_database.dart';
-import '../../model/note.dart';
+import './../../widget/common/side_nav.dart';
+import './../../db/services/notes_service.dart';
+import './../../model/note.dart';
 import './edit_note_page.dart';
 import './note_detail_page.dart';
-import '../widget/note/note_card_widget.dart';
+import './../../widget/note/note_card_widget.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class NotesPage extends StatefulWidget {
@@ -25,7 +25,7 @@ class _NotesPageState extends State<NotesPage> {
 
   @override
   void dispose() {
-    NotesDatabase.instance.close();
+    NotesService.instance.close();
 
     super.dispose();
   }
@@ -33,7 +33,7 @@ class _NotesPageState extends State<NotesPage> {
   Future refreshNotes() async {
     setState(() => isLoading = true);
 
-    notes = await NotesDatabase.instance.readAllNotes() as List<Note>;
+    notes = await NotesService.instance.readAllNotes() as List<Note>;
 
     setState(() => isLoading = false);
   }

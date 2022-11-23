@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'page/note/notes_page.dart';
-import 'db/note/notes_database.dart';
-import 'page/widget/common/side_nav.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();

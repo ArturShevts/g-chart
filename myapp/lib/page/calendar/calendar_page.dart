@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:myapp/page/calendar/day_detail_page.dart';
-import 'package:myapp/page/widget/calendar/calendar_card_widget.dart';
-import 'package:myapp/page/widget/common/side_nav.dart';
+import 'package:myapp/db/services/list_instance_service.dart';
+import 'package:myapp/model/list_instance.dart';
+import './day_detail_page.dart';
+import './../../widget/calendar/calendar_card_widget.dart';
+import './../../widget/common/side_nav.dart';
 // import '../../db/Calendar/Calendars_database.dart';
 
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -11,8 +15,15 @@ class CalendarsPage extends StatefulWidget {
   _CalendarsPageState createState() => _CalendarsPageState();
 }
 
+class Day {
+  late DateTime date;
+  List<ListInstance> instances = [];
+}
+
 class _CalendarsPageState extends State<CalendarsPage> {
-  late List<DateTime> days;
+  List<Day> days = [];
+  late List<ListInstance> listInstances;
+
   bool isLoading = false;
 
   @override
@@ -29,15 +40,48 @@ class _CalendarsPageState extends State<CalendarsPage> {
 
   Future refreshCalendars() async {
     setState(() => isLoading = true);
+    listInstances =
+        await ListInstancesService.instance.readAllAssignedListInstances();
 
-    // Calendars = await CalendarsDatabase.instance.readAllCalendars() as List<Calendar>;
-    //final today id todays date
     final today = DateTime.now();
     final firstDayOfWeek = today.subtract(Duration(days: today.weekday - 1));
-    days =
+    var dates =
         List.generate(7, (index) => firstDayOfWeek.add(Duration(days: index)));
-    print(days);
+
+    days = dates.map((date) {
+      final day = Day();
+      day.date = date;
+      day.instances = listInstances
+          .where((instance) => isRepeatedToday(instance, date))
+          .toList(growable: false);
+      return day;
+    }).toList(growable: false);
+    days.forEach((element) {
+      print(element.date);
+      print(element.instances);
+    });
     setState(() => isLoading = false);
+  }
+
+  bool isRepeatedToday(ListInstance instance, DateTime date) {
+    print(instance.repeatOn!.toLowerCase() +
+        "____" +
+        date.weekday.toString().toLowerCase());
+    bool isRepeatedOn = instance.repeatOn != null
+        ? instance.repeatOn!.contains(date.weekday.toString())
+        : false;
+
+    bool isRepeatedEvery = instance.repeatEvery != null
+        ? daysBetween(date, DateTime.now()) % instance.repeatEvery! == 0
+        : false;
+
+    return isRepeatedOn || isRepeatedEvery;
+  }
+
+  int daysBetween(DateTime from, DateTime to) {
+    from = DateTime(from.year, from.month, from.day);
+    to = DateTime(to.year, to.month, to.day);
+    return (to.difference(from).inHours / 24).round();
   }
 
   @override
@@ -65,12 +109,14 @@ class _CalendarsPageState extends State<CalendarsPage> {
           return GestureDetector(
             onTap: () async {
               await Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => DayDetailPage(day: day),
+                builder: (context) =>
+                    DayDetailPage(day: day.date, listInstances: day.instances),
               ));
 
               refreshCalendars();
             },
-            child: CalendarCardWidget(day: day, index: index),
+            child: CalendarCardWidget(
+                day: day.date, listInstances: day.instances, index: index),
           );
         },
       );

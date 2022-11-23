@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../db/note/notes_database.dart';
+import '../../widget/note/note_form_widget.dart';
+import '../../db/services/notes_service.dart';
 import '../../model/note.dart';
-import '../widget/note/note_form_widget.dart';
 
 class AddEditNotePage extends StatefulWidget {
   final Note? note;
@@ -96,7 +96,7 @@ class _AddEditNotePageState extends State<AddEditNotePage> {
       description: description,
     );
 
-    await NotesDatabase.instance.update(note);
+    await NotesService.instance.update(note);
   }
 
   Future addNote() async {
@@ -108,6 +108,6 @@ class _AddEditNotePageState extends State<AddEditNotePage> {
       createdTime: DateTime.now(),
     );
 
-    await NotesDatabase.instance.create(note);
+    await NotesService.instance.create(note);
   }
 }

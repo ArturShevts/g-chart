@@ -8,17 +8,22 @@
 // bool isCompleted;
 // bool isPublic;
 // bool isTemplate;
+// String? repeatOn;
+// int? repeatEvery;
 
 const String tableListInstances = 'listInstances';
 
 class ListInstanceFields {
   static final List<String> values = [
     /// Add all fields
-    id, userId, createdTime, assignedTime, startedTime, finishedTime,
-    isCompleted, isPublic, isTemplate
+    id, title, description, userId, createdTime, assignedTime, startedTime,
+    finishedTime,
+    isCompleted, isPublic, isTemplate, repeatOn, repeatEvery,
   ];
 
   static const String id = '_id';
+  static const String title = 'title';
+  static const String description = 'description';
   static const String userId = 'userId';
   static const String createdTime = 'createdTime';
   static const String assignedTime = 'assignedTime';
@@ -27,11 +32,15 @@ class ListInstanceFields {
   static const String isCompleted = 'isCompleted';
   static const String isPublic = 'isPublic';
   static const String isTemplate = 'isTemplate';
+  static const String repeatOn = 'repeatOn';
+  static const String repeatEvery = 'repeatEvery';
 }
 
 class ListInstance {
   final int? id;
   final int userId;
+  final String title;
+  final String? description;
   final DateTime createdTime;
   final DateTime? assignedTime;
   final DateTime? startedTime;
@@ -39,9 +48,13 @@ class ListInstance {
   final bool isCompleted;
   final bool isPublic;
   final bool isTemplate;
+  final String? repeatOn;
+  final int? repeatEvery;
 
   const ListInstance({
     this.id,
+    required this.title,
+    this.description,
     required this.userId,
     required this.createdTime,
     this.assignedTime,
@@ -50,10 +63,14 @@ class ListInstance {
     required this.isCompleted,
     required this.isPublic,
     required this.isTemplate,
+    required this.repeatOn,
+    required this.repeatEvery,
   });
 
   ListInstance copy({
     int? id,
+    String? title,
+    String? description,
     int? userId,
     DateTime? createdTime,
     DateTime? assignedTime,
@@ -62,9 +79,13 @@ class ListInstance {
     bool? isCompleted,
     bool? isPublic,
     bool? isTemplate,
+    String? repeatOn,
+    int? repeatEvery,
   }) =>
       ListInstance(
         id: id ?? this.id,
+        title: title ?? this.title,
+        description: description ?? this.description,
         userId: userId ?? this.userId,
         createdTime: createdTime ?? this.createdTime,
         assignedTime: assignedTime ?? this.assignedTime,
@@ -73,10 +94,14 @@ class ListInstance {
         isCompleted: isCompleted ?? this.isCompleted,
         isPublic: isPublic ?? this.isPublic,
         isTemplate: isTemplate ?? this.isTemplate,
+        repeatOn: repeatOn ?? this.repeatOn,
+        repeatEvery: repeatEvery ?? this.repeatEvery,
       );
 
   static ListInstance fromJson(Map<String, Object?> json) => ListInstance(
         id: json[ListInstanceFields.id] as int?,
+        title: json[ListInstanceFields.title] as String,
+        description: json[ListInstanceFields.description] as String?,
         userId: json[ListInstanceFields.userId] as int,
         createdTime:
             DateTime.parse(json[ListInstanceFields.createdTime] as String),
@@ -92,10 +117,14 @@ class ListInstance {
         isCompleted: json[ListInstanceFields.isCompleted] == 1,
         isPublic: json[ListInstanceFields.isPublic] == 1,
         isTemplate: json[ListInstanceFields.isTemplate] == 1,
+        repeatOn: json[ListInstanceFields.repeatOn] as String?,
+        repeatEvery: json[ListInstanceFields.repeatEvery] as int?,
       );
 
   Map<String, Object?> toJson() => {
         ListInstanceFields.id: id,
+        ListInstanceFields.title: title,
+        ListInstanceFields.description: description,
         ListInstanceFields.userId: userId,
         ListInstanceFields.createdTime: createdTime.toIso8601String(),
         ListInstanceFields.assignedTime: assignedTime?.toIso8601String(),
@@ -104,21 +133,7 @@ class ListInstance {
         ListInstanceFields.isCompleted: isCompleted ? 1 : 0,
         ListInstanceFields.isPublic: isPublic ? 1 : 0,
         ListInstanceFields.isTemplate: isTemplate ? 1 : 0,
+        ListInstanceFields.repeatOn: repeatOn,
+        ListInstanceFields.repeatEvery: repeatEvery,
       };
 }
-
-
- 
-
-
-// listItem
-// int? id;
-// int listInstanceId;
-// int listItemId;
-// int userId;
-// int exerciseId;
-// int? sets;
-// int? quantity;
-// int? weight;
-// bool isCompleted;
- 

@@ -8,6 +8,7 @@
 // int? quantity;
 // int? weight;
 // bool isCompleted;
+// int orderNum;
 
 const String tableListItems = 'listItems';
 
@@ -15,7 +16,7 @@ class ListItemFields {
   static final List<String> values = [
     /// Add all fields
     id, listInstanceId, listItemId, userId, exerciseId, sets, quantity, weight,
-    isCompleted
+    isCompleted, orderNum
   ];
 
   static const String id = '_id';
@@ -27,6 +28,7 @@ class ListItemFields {
   static const String quantity = 'quantity';
   static const String weight = 'weight';
   static const String isCompleted = 'isCompleted';
+  static const String orderNum = 'orderNum';
 }
 
 class ListItem {
@@ -39,6 +41,7 @@ class ListItem {
   final int? quantity;
   final int? weight;
   final bool isCompleted;
+  final int orderNum;
 
   const ListItem({
     this.id,
@@ -50,6 +53,7 @@ class ListItem {
     this.quantity,
     this.weight,
     required this.isCompleted,
+    required this.orderNum,
   });
 
   ListItem copy({
@@ -62,6 +66,7 @@ class ListItem {
     int? quantity,
     int? weight,
     bool? isCompleted,
+    int? orderNum,
   }) =>
       ListItem(
         id: id ?? this.id,
@@ -73,6 +78,7 @@ class ListItem {
         quantity: quantity ?? this.quantity,
         weight: weight ?? this.weight,
         isCompleted: isCompleted ?? this.isCompleted,
+        orderNum: orderNum ?? this.orderNum,
       );
 
   static ListItem fromJson(Map<String, Object?> json) => ListItem(
@@ -85,6 +91,7 @@ class ListItem {
         quantity: json[ListItemFields.quantity] as int?,
         weight: json[ListItemFields.weight] as int?,
         isCompleted: json[ListItemFields.isCompleted] == 1,
+        orderNum: json[ListItemFields.orderNum] as int,
       );
 
   Map<String, Object?> toJson() => {
@@ -97,5 +104,6 @@ class ListItem {
         ListItemFields.quantity: quantity,
         ListItemFields.weight: weight,
         ListItemFields.isCompleted: isCompleted ? 1 : 0,
+        ListItemFields.orderNum: orderNum,
       };
 }

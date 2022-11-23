@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../model/note.dart';
 
 final _lightColors = [
   Colors.amber.shade300,
@@ -10,20 +11,21 @@ final _lightColors = [
   Colors.tealAccent.shade100
 ];
 
-class CalendarCardWidget extends StatelessWidget {
-  CalendarCardWidget({
+class NoteCardWidget extends StatelessWidget {
+  NoteCardWidget({
     Key? key,
-    required this.day,
+    required this.note,
     required this.index,
   }) : super(key: key);
 
-  final DateTime day;
+  final Note note;
   final int index;
 
   @override
   Widget build(BuildContext context) {
     /// Pick colors from the accent colors based on index
     final color = _lightColors[index % _lightColors.length];
+    final time = DateFormat.yMMMd().format(note.createdTime);
     final minHeight = getMinHeight(index);
 
     return Card(
@@ -36,12 +38,12 @@ class CalendarCardWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              DateFormat('EEEE').format(day),
+              time,
               style: TextStyle(color: Colors.grey.shade700),
             ),
             SizedBox(height: 4),
             Text(
-              day.toString(),
+              note.title,
               style: TextStyle(
                 color: Colors.black,
                 fontSize: 20,
