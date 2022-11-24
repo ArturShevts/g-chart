@@ -56,17 +56,11 @@ class _CalendarsPageState extends State<CalendarsPage> {
           .toList(growable: false);
       return day;
     }).toList(growable: false);
-    days.forEach((element) {
-      print(element.date);
-      print(element.instances);
-    });
+    days.forEach((element) {});
     setState(() => isLoading = false);
   }
 
   bool isRepeatedToday(ListInstance instance, DateTime date) {
-    print(instance.repeatOn!.toLowerCase() +
-        "____" +
-        date.weekday.toString().toLowerCase());
     bool isRepeatedOn = instance.repeatOn != null
         ? instance.repeatOn!.contains(date.weekday.toString())
         : false;
@@ -91,7 +85,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
             'Calendars',
             style: TextStyle(fontSize: 24),
           ),
-          actions: [const Icon(Icons.search), const SizedBox(width: 12)],
+          actions: const [Icon(Icons.search), SizedBox(width: 12)],
         ),
         drawer: NavDrawer(),
         body: Center(
@@ -103,7 +97,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
         crossAxisCount: 2,
         mainAxisSpacing: 2,
         crossAxisSpacing: 2,
-        itemCount: 7,
+        itemCount: days.length,
         itemBuilder: (context, index) {
           final day = days[index];
           return GestureDetector(

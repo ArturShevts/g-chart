@@ -1,3 +1,4 @@
+import 'package:myapp/db/db_migrate.dart';
 import 'package:myapp/model/exercises.dart';
 import 'package:myapp/model/list_instance.dart';
 import 'package:myapp/model/list_item.dart';
@@ -15,25 +16,33 @@ class DatabaseBuilder {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('notes24.db');
+    _database = await _initDB('notes46.db');
     return _database!;
   }
 
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    print("inti db __ $path");
+    print("inti db _______ $path");
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
+    await db.execute('DROP TABLE IF EXISTS $tableNotes');
+    await db.execute('DROP TABLE IF EXISTS $tableExercises');
+    await db.execute('DROP TABLE IF EXISTS $tableListInstances');
+    await db.execute('DROP TABLE IF EXISTS $tableListItems');
+    await db.execute('DROP TABLE IF EXISTS $tableUsers');
+
+    await db.execute(foreignKeysOn);
     await db.execute(notesCreateQuery);
-    await db.execute(listInstanceCreateQuery);
-    await db.execute(listItemCreateQuery);
     await db.execute(usersCreateQuery);
     await db.execute(exercisesCreateQuery);
+    await db.execute(listInstanceCreateQuery);
+    await db.execute(listItemCreateQuery);
     await db.execute(listInstanceFillWithDummyDataQuery);
     await db.execute(listItemFillWithDummyDataQuery);
+    await db.execute(exercisesInsertDataQuery);
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -49,6 +58,8 @@ class DatabaseBuilder {
 
     db.close();
   }
+
+  final String foreignKeysOn = 'PRAGMA foreign_keys = ON';
 
   final String notesCreateQuery = '''
 CREATE TABLE $tableNotes (
@@ -75,91 +86,11 @@ CREATE TABLE $tableListInstances (
   ${ListInstanceFields.isPublic} BOOLEAN NOT NULL DEFAULT 0,
   ${ListInstanceFields.isTemplate} BOOLEAN NOT NULL DEFAULT 0,
   ${ListInstanceFields.repeatOn} TEXT,
-  ${ListInstanceFields.repeatEvery} INTEGER
+  ${ListInstanceFields.repeatEvery} INTEGER,
+  FOREIGN KEY (${ListInstanceFields.userId}) REFERENCES $tableUsers(${UserFields.id}) ON DELETE CASCADE
 )
 ''';
 
-  final String listInstanceFillWithDummyDataQuery = '''
-INSERT INTO  $tableListInstances (
-  ${ListInstanceFields.userId},
-  ${ListInstanceFields.title},
-  ${ListInstanceFields.description},
-  ${ListInstanceFields.createdTime},
-  ${ListInstanceFields.assignedTime},
-  ${ListInstanceFields.startedTime},
-  ${ListInstanceFields.finishedTime},
-  ${ListInstanceFields.isCompleted},
-  ${ListInstanceFields.isPublic},
-  ${ListInstanceFields.isTemplate},
-  ${ListInstanceFields.repeatOn},
-  ${ListInstanceFields.repeatEvery}
-) VALUES (
-  1,
-  'Back',
-  'Test List Description',
-  '2021-01-01 00:00:00',
-  '2021-01-01 00:00:00',
-  '2021-01-01 00:00:00',
-  '2021-01-01 00:00:00',
-  false,
-  false,
-  0,
-  '6',
-  null
-), (
-  2,
-  'Chest',
-  'Test List Description',
-  '2021-01-01 00:00:00',
-  '2021-01-01 00:00:00',
-  '2021-01-01 00:00:00',
-  '2021-01-01 00:00:00',
-  false,
-  false,
-  0,
-  '6',
-  null
-),
- (
-  3,
-  'Arms',
-  'Test List Description',
-  '2021-01-01 00:00:00',
-  '2021-01-01 00:00:00',
-  '2021-01-01 00:00:00',
-  '2021-01-01 00:00:00',
-  false,
-  false,
-  0,
-  '36',
-  null
-),
- (
-  4,
-  'Legs',
-  'Test List Description',
-  '2021-01-01 00:00:00',
-  '2021-01-01 00:00:00',
-  '2021-01-01 00:00:00',
-  '2021-01-01 00:00:00',
-  false,
-  false,
-  0,
-  '13',
-  null
-)
-''';
-// listItem
-// int? id;
-// int listInstanceId;
-// int listItemId;
-// int userId;
-// int exerciseId;
-// int? sets;
-// int? quantity;
-// int? weight;
-// bool isCompleted;
-// int orderNum;
   final String listItemCreateQuery = '''
 CREATE TABLE $tableListItems (
   ${ListItemFields.id} INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -171,73 +102,11 @@ CREATE TABLE $tableListItems (
   ${ListItemFields.quantity} INTEGER,
   ${ListItemFields.weight} INTEGER,
   ${ListItemFields.isCompleted} BOOLEAN NOT NULL DEFAULT 0,
-  ${ListItemFields.orderNum} INTEGER NOT NULL
+  ${ListItemFields.orderNum} INTEGER NOT NULL,
+  FOREIGN KEY (${ListItemFields.userId}) REFERENCES $tableUsers(${UserFields.id}) ON DELETE CASCADE,
+  FOREIGN KEY (${ListItemFields.listInstanceId}) REFERENCES $tableListInstances(${ListInstanceFields.id}) ON DELETE CASCADE,
+  FOREIGN KEY (${ListItemFields.exerciseId}) REFERENCES $tableExercises(${ExerciseFields.id}) ON DELETE SET DEFAULT
 )
-''';
-
-  final String listItemFillWithDummyDataQuery = '''
-INSERT INTO  $tableListItems (
-  ${ListItemFields.listInstanceId},
-  ${ListItemFields.listItemId},
-  ${ListItemFields.userId},
-  ${ListItemFields.exerciseId},
-  ${ListItemFields.sets},
-  ${ListItemFields.quantity},
-  ${ListItemFields.weight},
-  ${ListItemFields.isCompleted},
-  ${ListItemFields.orderNum}
-
-) VALUES (
-  1,
-  1,
-  1,
-  1,
-  3,
-  10,
-  15,
-  false,
-  1
-), (
-  1,
-  2,
-  1,
-  2,
-  3,
-  20,
-  10,
-  false,
-  2
-), (
-  1,
-  3,
-  1,
-  3,
-  3,
-  12,
-  10,
-  false,
-  3
-), (
-  2,  
-  4,
-  2,
-  4,
-  3,
-  10,
-  15,
-  false,
-  4
-), (
-  2,
-  5,
-  2,
-  5,
-  3,
-  20,
-  10,
-  false,
-  5
-  )
 ''';
 
   final String usersCreateQuery = '''
@@ -254,22 +123,24 @@ CREATE TABLE $tableUsers (
 )
 ''';
 
+// delete table exercises if exists then create it
   final String exercisesCreateQuery = '''
-CREATE TABLE exercises (
+ CREATE TABLE $tableExercises (
   ${ExerciseFields.id} INTEGER PRIMARY KEY AUTOINCREMENT,
   ${ExerciseFields.name} TEXT NOT NULL,
-  ${ExerciseFields.sets} INTEGER,
-  ${ExerciseFields.quantity} INTEGER,
-  ${ExerciseFields.weight} INTEGER,
-  ${ExerciseFields.restTime} INTEGER,
-  ${ExerciseFields.description} TEXT,
-  ${ExerciseFields.videoUrl} TEXT,
-  ${ExerciseFields.primaryMuscleGroup} TEXT,
-  ${ExerciseFields.secondaryMuscleGroup} TEXT,
-  ${ExerciseFields.tertiaryMuscleGroup} TEXT,
+  ${ExerciseFields.aliases} TEXT,
+  ${ExerciseFields.primaryMuscles} TEXT,
+  ${ExerciseFields.secondaryMuscles} TEXT,
+  ${ExerciseFields.force} TEXT,
+  ${ExerciseFields.level} TEXT NOT NULL,
+  ${ExerciseFields.mechanic} TEXT,
   ${ExerciseFields.equipment} TEXT,
-  ${ExerciseFields.level} TEXT,
-  ${ExerciseFields.type} TEXT
+  ${ExerciseFields.category} TEXT NOT NULL,
+  ${ExerciseFields.instructions} TEXT,
+  ${ExerciseFields.description} TEXT,
+  ${ExerciseFields.tips} TEXT,
+  ${ExerciseFields.dateCreated} TEXT,
+  ${ExerciseFields.dateUpdated} TEXT
 )
 ''';
 }

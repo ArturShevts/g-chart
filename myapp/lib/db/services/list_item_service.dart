@@ -1,4 +1,5 @@
 import 'package:myapp/db/db_builder.dart';
+import 'package:myapp/model/exercises.dart';
 import 'package:myapp/model/list_item.dart';
 
 class ListItemsService {

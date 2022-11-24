@@ -1,4 +1,8 @@
 import 'package:myapp/db/db_builder.dart';
+import 'package:myapp/db/services/exercises_service.dart';
+import 'package:myapp/db/services/list_item_service.dart';
+import 'package:myapp/model/exercises.dart';
+import 'package:myapp/model/list_item.dart';
 import '../../model/list_instance.dart';
 
 class ListInstancesService {
@@ -49,6 +53,24 @@ class ListInstancesService {
         await db.query(tableListInstances, orderBy: orderBy, where: where);
 
     return result.map((json) => ListInstance.fromJson(json)).toList();
+  }
+
+  Future<ListInstance> readPopulatedListInstance(int listInstanceId) async {
+    final db = await DatabaseBuilder.instance.database;
+
+    ListInstance listInstance = await readListInstance(listInstanceId);
+    List<ListItem> listItems =
+        await ListItemsService.instance.readListItemsForListId(listInstanceId);
+    listInstance.listItems = [];
+
+    for (var listItem in listItems) {
+      final exercises =
+          await ExercisesService.instance.readExercise(listItem.id!);
+      listItem.exercise = exercises;
+      listInstance.listItems!.add(listItem);
+    }
+
+    return listInstance;
   }
 
   Future<int> update(ListInstance listInstance) async {

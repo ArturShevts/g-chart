@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/page/calendar/calendar_page.dart';
+import 'package:myapp/page/note/notes_page.dart';
 
 class NavDrawer extends StatelessWidget {
   @override
@@ -31,7 +32,10 @@ class NavDrawer extends StatelessWidget {
             title: const Text('Notes'),
             //ontap navigate to notes page
 
-            onTap: () => {Navigator.of(context).pop()},
+            onTap: () => {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (context) => NotesPage()))
+            },
           ),
           ListTile(
             leading: const Icon(Icons.calendar_month_outlined),

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:myapp/db/db_builder.dart';
 import '../../model/exercises.dart';
 
@@ -26,6 +28,21 @@ class ExercisesService {
       return Exercise.fromJson(maps.first);
     } else {
       throw Exception('ID $id not found');
+    }
+  }
+
+  Future<List<Exercise>> readExercisesForListItemIds(List<int> ids) async {
+    final db = await DatabaseBuilder.instance.database;
+    final maps = await db.query(
+      tableExercises,
+      columns: ExerciseFields.values,
+      where: '${ExerciseFields.id} IN (${ids.join(',')})',
+    );
+
+    if (maps.isNotEmpty) {
+      return maps.map((e) => Exercise.fromJson(e)).toList();
+    } else {
+      throw Exception('ID $ids not found');
     }
   }
 

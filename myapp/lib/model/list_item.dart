@@ -9,6 +9,9 @@
 // int? weight;
 // bool isCompleted;
 // int orderNum;
+// Exercise? exercise;  // This is not in the database
+
+import 'package:myapp/model/exercises.dart';
 
 const String tableListItems = 'listItems';
 
@@ -42,19 +45,20 @@ class ListItem {
   final int? weight;
   final bool isCompleted;
   final int orderNum;
+  late Exercise? exercise;
 
-  const ListItem({
-    this.id,
-    required this.listInstanceId,
-    required this.listItemId,
-    required this.userId,
-    required this.exerciseId,
-    this.sets,
-    this.quantity,
-    this.weight,
-    required this.isCompleted,
-    required this.orderNum,
-  });
+  ListItem(
+      {this.id,
+      required this.listInstanceId,
+      required this.listItemId,
+      required this.userId,
+      required this.exerciseId,
+      this.sets,
+      this.quantity,
+      this.weight,
+      required this.isCompleted,
+      required this.orderNum,
+      this.exercise});
 
   ListItem copy({
     int? id,
@@ -67,6 +71,7 @@ class ListItem {
     int? weight,
     bool? isCompleted,
     int? orderNum,
+    Exercise? exercise,
   }) =>
       ListItem(
         id: id ?? this.id,
@@ -79,6 +84,7 @@ class ListItem {
         weight: weight ?? this.weight,
         isCompleted: isCompleted ?? this.isCompleted,
         orderNum: orderNum ?? this.orderNum,
+        exercise: exercise ?? this.exercise,
       );
 
   static ListItem fromJson(Map<String, Object?> json) => ListItem(

@@ -1,6 +1,12 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:myapp/db/services/exercises_service.dart';
+import 'package:myapp/db/services/list_instance_service.dart';
 import 'package:myapp/db/services/list_item_service.dart';
+import 'package:myapp/model/exercises.dart';
 import 'package:myapp/model/list_instance.dart';
 import 'package:myapp/model/list_item.dart';
 // import '../../db/day/days_database.dart';
@@ -21,14 +27,10 @@ class DayDetailPage extends StatefulWidget {
   _DayDetailPageState createState() => _DayDetailPageState();
 }
 
-class PopulatedList {
-  List<ListItem> items = [];
-  late ListInstance details;
-}
-
 class _DayDetailPageState extends State<DayDetailPage> {
   late DateTime day = widget.day;
-  late List<PopulatedList> populatedLists = [];
+  late List<ListInstance> populatedLists = [];
+  late List<Exercise> exercises = [];
 
   bool isLoading = false;
 
@@ -41,13 +43,10 @@ class _DayDetailPageState extends State<DayDetailPage> {
 
   Future refreshItems() async {
     setState(() => isLoading = true);
-    for (var element in widget.listInstances) {
-      List<ListItem> items =
-          await ListItemsService.instance.readListItemsForListId(element.id!);
 
-      final populatedList = PopulatedList();
-      populatedList.items = items;
-      populatedList.details = element;
+    for (var element in widget.listInstances) {
+      final populatedList = await ListInstancesService.instance
+          .readPopulatedListInstance(element.id!);
       populatedLists.add(populatedList);
     }
 
@@ -60,11 +59,11 @@ class _DayDetailPageState extends State<DayDetailPage> {
           actions: [editButton(), deleteButton()],
         ),
         body: isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator())
             : Padding(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 child: ListView(
-                  padding: EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   children: [
                     Column(
                       children: populatedLists
@@ -76,24 +75,33 @@ class _DayDetailPageState extends State<DayDetailPage> {
                                     Row(
                                       children: [
                                         Text(
-                                          '${list.details.title}, ',
+                                          '${list.title}, ',
                                           style: TextStyle(
                                               color: Colors.grey.shade900,
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold),
                                         ),
                                         Text(
-                                          '${list.details.description}',
+                                          '${list.description}',
                                           style: TextStyle(
                                               color: Colors.grey.shade800,
                                               fontSize: 14),
                                         ),
                                       ],
                                     ),
-                                    ...list.items.map((item) => Row(children: [
-                                          Text(item.exerciseId.toString()),
-                                          Text(item.sets.toString()),
-                                        ]))
+                                    ...?list.listItems?.map((item) {
+                                      return Row(
+                                        children: [
+                                          Text(
+                                            item.exercise?.name ?? '',
+                                            style: TextStyle(
+                                                color: Colors.grey.shade900,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      );
+                                    }).toList()
                                   ]),
                                 ),
                               ))
@@ -105,7 +113,7 @@ class _DayDetailPageState extends State<DayDetailPage> {
       );
 
   Widget editButton() => IconButton(
-      icon: Icon(Icons.edit_outlined),
+      icon: const Icon(Icons.edit_outlined),
       onPressed: () async {
         if (isLoading) return;
 
@@ -117,7 +125,7 @@ class _DayDetailPageState extends State<DayDetailPage> {
       });
 
   Widget deleteButton() => IconButton(
-        icon: Icon(Icons.delete),
+        icon: const Icon(Icons.delete),
         onPressed: () async {
           // await DaysDatabase.instance.delete(widget.dayId);
 

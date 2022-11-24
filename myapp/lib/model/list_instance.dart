@@ -10,6 +10,9 @@
 // bool isTemplate;
 // String? repeatOn;
 // int? repeatEvery;
+// List<ListItem> listItems; // this is not in the database
+
+import 'package:myapp/model/list_item.dart';
 
 const String tableListInstances = 'listInstances';
 
@@ -50,8 +53,9 @@ class ListInstance {
   final bool isTemplate;
   final String? repeatOn;
   final int? repeatEvery;
+  late List<ListItem>? listItems;
 
-  const ListInstance({
+  ListInstance({
     this.id,
     required this.title,
     this.description,
@@ -65,6 +69,7 @@ class ListInstance {
     required this.isTemplate,
     required this.repeatOn,
     required this.repeatEvery,
+    this.listItems,
   });
 
   ListInstance copy({
@@ -81,6 +86,7 @@ class ListInstance {
     bool? isTemplate,
     String? repeatOn,
     int? repeatEvery,
+    List<ListItem>? listItems,
   }) =>
       ListInstance(
         id: id ?? this.id,
@@ -96,6 +102,7 @@ class ListInstance {
         isTemplate: isTemplate ?? this.isTemplate,
         repeatOn: repeatOn ?? this.repeatOn,
         repeatEvery: repeatEvery ?? this.repeatEvery,
+        listItems: listItems ?? this.listItems,
       );
 
   static ListInstance fromJson(Map<String, Object?> json) => ListInstance(
