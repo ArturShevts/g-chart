@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:myapp/db/db_builder.dart';
 import 'package:myapp/db/services/exercises_service.dart';
 import 'package:myapp/db/services/list_item_service.dart';
@@ -43,6 +46,18 @@ class ListInstancesService {
     return result.map((json) => ListInstance.fromJson(json)).toList();
   }
 
+  Future<List<ListInstance>> readAllListInstanceTemplates() async {
+    final db = await DatabaseBuilder.instance.database;
+
+    const orderBy = '${ListInstanceFields.createdTime} ASC';
+    const where = '${ListInstanceFields.isTemplate} = 1';
+
+    final result =
+        await db.query(tableListInstances, where: where, orderBy: orderBy);
+
+    return result.map((json) => ListInstance.fromJson(json)).toList();
+  }
+
   Future<List<ListInstance>> readAllAssignedListInstances() async {
     final db = await DatabaseBuilder.instance.database;
 
@@ -62,12 +77,22 @@ class ListInstancesService {
     List<ListItem> listItems =
         await ListItemsService.instance.readListItemsForListId(listInstanceId);
     listInstance.listItems = [];
+    List<int> ids = listItems.map((e) => e.exerciseId).toList();
 
-    for (var listItem in listItems) {
-      final exercises =
-          await ExercisesService.instance.readExercise(listItem.id!);
-      listItem.exercise = exercises;
-      listInstance.listItems!.add(listItem);
+    List<Exercise?> exercises = ids.isNotEmpty
+        ? await ExercisesService.instance.readExercisesForListItemIds(ids)
+        : [];
+    if (exercises.isEmpty) {
+      return listInstance;
+    }
+    for (ListItem listItem in listItems) {
+      List<ListItem> items = [];
+      for (var exercise in exercises) {
+        if (exercise!.id == listItem.exerciseId) {
+          items.add(listItem.copy(exercise: exercise));
+        }
+      }
+      listInstance.listItems!.addAll(items);
     }
 
     return listInstance;

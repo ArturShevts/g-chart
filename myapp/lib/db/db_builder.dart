@@ -1,4 +1,5 @@
 import 'package:myapp/db/db_migrate.dart';
+import 'package:myapp/model/events.dart';
 import 'package:myapp/model/exercises.dart';
 import 'package:myapp/model/list_instance.dart';
 import 'package:myapp/model/list_item.dart';
@@ -16,7 +17,7 @@ class DatabaseBuilder {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('notes46.db');
+    _database = await _initDB('notes48.db');
     return _database!;
   }
 
@@ -40,6 +41,7 @@ class DatabaseBuilder {
     await db.execute(exercisesCreateQuery);
     await db.execute(listInstanceCreateQuery);
     await db.execute(listItemCreateQuery);
+    await db.execute(eventsCreateQuery);
     await db.execute(listInstanceFillWithDummyDataQuery);
     await db.execute(listItemFillWithDummyDataQuery);
     await db.execute(exercisesInsertDataQuery);
@@ -141,6 +143,20 @@ CREATE TABLE $tableUsers (
   ${ExerciseFields.tips} TEXT,
   ${ExerciseFields.dateCreated} TEXT,
   ${ExerciseFields.dateUpdated} TEXT
+)
+''';
+
+  final String eventsCreateQuery = '''
+CREATE TABLE $tableEvents (
+  ${EventFields.id} INTEGER PRIMARY KEY AUTOINCREMENT,
+  ${EventFields.templateId} INTEGER NOT NULL,
+  ${EventFields.dates} TEXT,
+  ${EventFields.startDate} TEXT,
+  ${EventFields.endDate} TEXT,
+  ${EventFields.repeatInterval} INTEGER,
+  ${EventFields.repeatDays} TEXT,
+  ${EventFields.exeptionUnassignedDates} TEXT,
+  FOREIGN KEY (${EventFields.templateId}) REFERENCES $tableListInstances(${ListInstanceFields.id}) ON DELETE CASCADE
 )
 ''';
 }

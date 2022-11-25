@@ -42,18 +42,18 @@ class ListInstanceFields {
 class ListInstance {
   final int? id;
   final int userId;
-  final String title;
-  final String? description;
-  final DateTime createdTime;
-  final DateTime? assignedTime;
-  final DateTime? startedTime;
-  final DateTime? finishedTime;
-  final bool isCompleted;
-  final bool isPublic;
-  final bool isTemplate;
-  final String? repeatOn;
-  final int? repeatEvery;
-  late List<ListItem>? listItems;
+  String title;
+  String? description;
+  DateTime createdTime;
+  DateTime? assignedTime;
+  DateTime? startedTime;
+  DateTime? finishedTime;
+  bool isCompleted;
+  bool isPublic;
+  bool isTemplate;
+  String? repeatOn;
+  int? repeatEvery;
+  List<ListItem>? listItems;
 
   ListInstance({
     this.id,
@@ -67,8 +67,8 @@ class ListInstance {
     required this.isCompleted,
     required this.isPublic,
     required this.isTemplate,
-    required this.repeatOn,
-    required this.repeatEvery,
+    this.repeatOn,
+    this.repeatEvery,
     this.listItems,
   });
 

@@ -1,16 +1,17 @@
 import 'dart:convert';
 
 import 'package:myapp/db/db_builder.dart';
-import '../../model/exercises.dart';
+import 'package:myapp/model/exercises.dart';
+import '../../model/events.dart';
 
-class ExercisesService {
-  static final ExercisesService instance = ExercisesService._init();
+class EventsService {
+  static final EventsService instance = EventsService._init();
 
-  ExercisesService._init();
+  EventsService._init();
 
   Future<Exercise> create(Exercise exercise) async {
     final db = await DatabaseBuilder.instance.database;
-    final id = await db.insert(tableExercises, exercise.toJson());
+    final id = await db.insert(tableEvents, exercise.toJson());
     return exercise.copy(id: id);
   }
 
@@ -18,7 +19,7 @@ class ExercisesService {
     final db = await DatabaseBuilder.instance.database;
 
     final maps = await db.query(
-      tableExercises,
+      tableEvents,
       columns: ExerciseFields.values,
       where: '${ExerciseFields.id} = ?',
       whereArgs: [id],
@@ -31,10 +32,10 @@ class ExercisesService {
     }
   }
 
-  Future<List<Exercise>> readExercisesForListItemIds(List<int> ids) async {
+  Future<List<Exercise>> readEventsForListItemIds(List<int> ids) async {
     final db = await DatabaseBuilder.instance.database;
     final maps = await db.query(
-      tableExercises,
+      tableEvents,
       columns: ExerciseFields.values,
       where: '${ExerciseFields.id} IN (${ids.join(', ')})',
     );
@@ -46,12 +47,12 @@ class ExercisesService {
     }
   }
 
-  Future<List<Exercise>> readAllExercises() async {
+  Future<List<Exercise>> readAllEvents() async {
     final db = await DatabaseBuilder.instance.database;
 
     const orderBy = '${ExerciseFields.name} ASC';
 
-    final result = await db.query(tableExercises, orderBy: orderBy);
+    final result = await db.query(tableEvents, orderBy: orderBy);
 
     return result.map((json) => Exercise.fromJson(json)).toList();
   }
@@ -60,7 +61,7 @@ class ExercisesService {
     final db = await DatabaseBuilder.instance.database;
 
     return db.update(
-      tableExercises,
+      tableEvents,
       exercise.toJson(),
       where: '${ExerciseFields.id} = ?',
       whereArgs: [exercise.id],
@@ -71,7 +72,7 @@ class ExercisesService {
     final db = await DatabaseBuilder.instance.database;
 
     return await db.delete(
-      tableExercises,
+      tableEvents,
       where: '${ExerciseFields.id} = ?',
       whereArgs: [id],
     );
