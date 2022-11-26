@@ -37,7 +37,6 @@ class ListItemFields {
 class ListItem {
   final int? id;
   final int listInstanceId;
-  final int listItemId;
   final int userId;
   final int exerciseId;
   final int? sets;
@@ -50,7 +49,6 @@ class ListItem {
   ListItem(
       {this.id,
       required this.listInstanceId,
-      required this.listItemId,
       required this.userId,
       required this.exerciseId,
       this.sets,
@@ -63,7 +61,6 @@ class ListItem {
   ListItem copy({
     int? id,
     int? listInstanceId,
-    int? listItemId,
     int? userId,
     int? exerciseId,
     int? sets,
@@ -76,7 +73,6 @@ class ListItem {
       ListItem(
         id: id ?? this.id,
         listInstanceId: listInstanceId ?? this.listInstanceId,
-        listItemId: listItemId ?? this.listItemId,
         userId: userId ?? this.userId,
         exerciseId: exerciseId ?? this.exerciseId,
         sets: sets ?? this.sets,
@@ -90,7 +86,6 @@ class ListItem {
   static ListItem fromJson(Map<String, Object?> json) => ListItem(
         id: json[ListItemFields.id] as int?,
         listInstanceId: json[ListItemFields.listInstanceId] as int,
-        listItemId: json[ListItemFields.listItemId] as int,
         userId: json[ListItemFields.userId] as int,
         exerciseId: json[ListItemFields.exerciseId] as int,
         sets: json[ListItemFields.sets] as int?,
@@ -103,7 +98,6 @@ class ListItem {
   Map<String, Object?> toJson() => {
         ListItemFields.id: id,
         ListItemFields.listInstanceId: listInstanceId,
-        ListItemFields.listItemId: listItemId,
         ListItemFields.userId: userId,
         ListItemFields.exerciseId: exerciseId,
         ListItemFields.sets: sets,

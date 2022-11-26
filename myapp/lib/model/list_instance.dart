@@ -1,6 +1,9 @@
 // listInstance
 // int? id;
+// String? title;
+// String? description;
 // int userId;
+
 // DateTime createdTime;
 // DateTime? assignedTime;
 // DateTime? startedTime;
@@ -9,8 +12,11 @@
 // bool isPublic;
 // bool isTemplate;
 // String? repeatOn;
+// List<String>? repeatOn;
 // int? repeatEvery;
-// List<ListItem> listItems; // this is not in the database
+// List<bool>? listItems; // this is not in the database
+
+import 'dart:convert';
 
 import 'package:myapp/model/list_item.dart';
 
@@ -21,7 +27,7 @@ class ListInstanceFields {
     /// Add all fields
     id, title, description, userId, createdTime, assignedTime, startedTime,
     finishedTime,
-    isCompleted, isPublic, isTemplate, repeatOn, repeatEvery,
+    isCompleted, isPublic, isTemplate, repeatEvery, repeatOn
   ];
 
   static const String id = '_id';
@@ -35,8 +41,8 @@ class ListInstanceFields {
   static const String isCompleted = 'isCompleted';
   static const String isPublic = 'isPublic';
   static const String isTemplate = 'isTemplate';
-  static const String repeatOn = 'repeatOn';
   static const String repeatEvery = 'repeatEvery';
+  static const String repeatOn = 'repeatOn';
 }
 
 class ListInstance {
@@ -51,9 +57,9 @@ class ListInstance {
   bool isCompleted;
   bool isPublic;
   bool isTemplate;
-  String? repeatOn;
   int? repeatEvery;
   List<ListItem>? listItems;
+  List<bool>? repeatOn;
 
   ListInstance({
     this.id,
@@ -67,9 +73,9 @@ class ListInstance {
     required this.isCompleted,
     required this.isPublic,
     required this.isTemplate,
-    this.repeatOn,
     this.repeatEvery,
     this.listItems,
+    this.repeatOn,
   });
 
   ListInstance copy({
@@ -84,9 +90,9 @@ class ListInstance {
     bool? isCompleted,
     bool? isPublic,
     bool? isTemplate,
-    String? repeatOn,
     int? repeatEvery,
     List<ListItem>? listItems,
+    List<bool>? repeatOn,
   }) =>
       ListInstance(
         id: id ?? this.id,
@@ -100,9 +106,9 @@ class ListInstance {
         isCompleted: isCompleted ?? this.isCompleted,
         isPublic: isPublic ?? this.isPublic,
         isTemplate: isTemplate ?? this.isTemplate,
-        repeatOn: repeatOn ?? this.repeatOn,
         repeatEvery: repeatEvery ?? this.repeatEvery,
         listItems: listItems ?? this.listItems,
+        repeatOn: repeatOn ?? this.repeatOn,
       );
 
   static ListInstance fromJson(Map<String, Object?> json) => ListInstance(
@@ -124,8 +130,13 @@ class ListInstance {
         isCompleted: json[ListInstanceFields.isCompleted] == 1,
         isPublic: json[ListInstanceFields.isPublic] == 1,
         isTemplate: json[ListInstanceFields.isTemplate] == 1,
-        repeatOn: json[ListInstanceFields.repeatOn] as String?,
         repeatEvery: json[ListInstanceFields.repeatEvery] as int?,
+        repeatOn: json[ListInstanceFields.repeatOn] != null
+            ? (jsonDecode(json[ListInstanceFields.repeatOn] as String)
+                    as List<dynamic>)
+                .map((e) => e as bool)
+                .toList()
+            : null,
       );
 
   Map<String, Object?> toJson() => {
@@ -140,7 +151,7 @@ class ListInstance {
         ListInstanceFields.isCompleted: isCompleted ? 1 : 0,
         ListInstanceFields.isPublic: isPublic ? 1 : 0,
         ListInstanceFields.isTemplate: isTemplate ? 1 : 0,
-        ListInstanceFields.repeatOn: repeatOn,
         ListInstanceFields.repeatEvery: repeatEvery,
+        ListInstanceFields.repeatOn: repeatOn?.map((e) => e ? 1 : 0),
       };
 }

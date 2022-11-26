@@ -17,7 +17,7 @@ class DatabaseBuilder {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('notes48.db');
+    _database = await _initDB('notes50.db');
     return _database!;
   }
 

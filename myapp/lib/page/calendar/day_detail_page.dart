@@ -44,7 +44,7 @@ class _DayDetailPageState extends State<DayDetailPage> {
 
   Future refreshItems() async {
     setState(() => isLoading = true);
-
+    populatedLists = [];
     for (var element in widget.listInstances) {
       final populatedList = await ListInstancesService.instance
           .readPopulatedListInstance(element.id!);
@@ -57,11 +57,7 @@ class _DayDetailPageState extends State<DayDetailPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          actions: [editButton(), deleteButton()],
-        ),
-        floatingActionButton: AddListInstanceModelButton(
-          day: day,
-          userId: 1,
+          actions: [addButton()],
         ),
         body: isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -131,24 +127,15 @@ class _DayDetailPageState extends State<DayDetailPage> {
               ),
       );
 
-  Widget editButton() => IconButton(
-      icon: const Icon(Icons.edit_outlined),
+  Widget addButton() => IconButton(
+      icon: const Icon(Icons.playlist_add_rounded),
       onPressed: () async {
         if (isLoading) return;
 
-        // await Navigator.of(context).push(MaterialPageRoute(
-        //   builder: (context) => AddEditDayPage(day: day),
-        // ));
+        await Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => AddEditListPage(day: day),
+        ));
 
-        // refreshDay();
+        refreshItems();
       });
-
-  Widget deleteButton() => IconButton(
-        icon: const Icon(Icons.delete),
-        onPressed: () async {
-          // await DaysDatabase.instance.delete(widget.dayId);
-
-          Navigator.of(context).pop();
-        },
-      );
 }

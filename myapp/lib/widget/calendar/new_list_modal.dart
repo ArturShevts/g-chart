@@ -68,16 +68,17 @@ class _AddListInstanceModelButtonState
     return FloatingActionButton(
       child: const Icon(Icons.add),
       onPressed: () {
-        showBottomSheet<void>(
+        showModalBottomSheet<void>(
           // isScrollControlled: true,
           constraints: const BoxConstraints(),
           enableDrag: true,
+          //context global context
           context: context,
           // height: MediaQuery.of(context).size.height * 0.4,
           builder: (BuildContext context) {
             return Container(
               // height: height * 0.7,
-              height: 750,
+              height: 950,
               child: Column(
                 children: [
                   const Padding(

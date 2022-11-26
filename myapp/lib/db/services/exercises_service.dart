@@ -31,6 +31,26 @@ class ExercisesService {
     }
   }
 
+  Future<List<Exercise>> searchExercisesByName(String search) async {
+    final db = await DatabaseBuilder.instance.database;
+// Select id from sometable where name like '%abc%'
+    final maps = await db.query(
+      tableExercises,
+      columns: ExerciseFields.values,
+      where: "${ExerciseFields.name} LIKE '%$search%'",
+    );
+
+    if (maps.isNotEmpty) {
+      print('Matches for $maps are found!');
+
+      return maps.map((e) => Exercise.fromJson(e)).toList();
+    } else {
+      print('Matches for $search not found');
+
+      return [];
+    }
+  }
+
   Future<List<Exercise>> readExercisesForListItemIds(List<int> ids) async {
     final db = await DatabaseBuilder.instance.database;
     final maps = await db.query(

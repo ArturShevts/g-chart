@@ -27,7 +27,7 @@ INSERT INTO  $tableListInstances (
   false,
   false,
   0,
-  '6',
+  '[true, true, true, true, true, true, true]',
   null
 ), (
   2,
@@ -40,7 +40,7 @@ INSERT INTO  $tableListInstances (
   false,
   false,
   0,
-  '6',
+  '[false, true, true, true, false, true, true]',
   null
 ),
  (
@@ -54,7 +54,7 @@ INSERT INTO  $tableListInstances (
   false,
   false,
   0,
-  '36',
+  '[true, true, true, true, false, true, true]',
   null
 ),
  (
@@ -68,7 +68,7 @@ INSERT INTO  $tableListInstances (
   false,
   false,
   0,
-  '13',
+  '[true, false, true, false, true, false, true]',
   null
 )
 ''';

@@ -1,113 +1,130 @@
-// import 'package:flutter/material.dart';
-// import '../../db/day/days_database.dart';
-// import '../../model/day.dart';
-// import '../widget/day/day_form_widget.dart';
+import 'dart:convert';
 
-// class AddEditDayPage extends StatefulWidget {
-//   final Day? day;
+import 'package:flutter/material.dart';
+import 'package:myapp/model/list_instance.dart';
+import 'package:myapp/widget/calendar/list_form.dart';
 
-//   const AddEditDayPage({
-//     Key? key,
-//     this.day,
-//   }) : super(key: key);
-//   @override
-//   _AddEditDayPageState createState() => _AddEditDayPageState();
-// }
+class AddEditListPage extends StatefulWidget {
+  final ListInstance? listInstance;
+  final DateTime? day;
+  const AddEditListPage({
+    Key? key,
+    this.day,
+    this.listInstance,
+  }) : super(key: key);
+  @override
+  _AddEditListPageState createState() => _AddEditListPageState();
+}
 
-// class _AddEditDayPageState extends State<AddEditDayPage> {
-//   final _formKey = GlobalKey<FormState>();
-//   late bool isImportant;
-//   late int number;
-//   late String title;
-//   late String description;
+class _AddEditListPageState extends State<AddEditListPage> {
+  final _formKey = GlobalKey<FormState>();
 
-//   @override
-//   void initState() {
-//     super.initState();
+  late String title;
+  late String description;
+  late bool isPublic;
+  late bool isTemplate;
+  late List<bool> repeatOn;
+  late int repeatEvery;
 
-//     isImportant = widget.day?.isImportant ?? false;
-//     number = widget.day?.number ?? 0;
-//     title = widget.day?.title ?? '';
-//     description = widget.day?.description ?? '';
-//   }
+  @override
+  void initState() {
+    super.initState();
 
-//   @override
-//   Widget build(BuildContext context) => Scaffold(
-//         appBar: AppBar(
-//           actions: [buildButton()],
-//         ),
-//         body: Hero(
-//           tag: 'hero${widget.day?.id}',
-//           child: Form(
-//             key: _formKey,
-//             child: DayFormWidget(
-//               isImportant: isImportant,
-//               number: number,
-//               title: title,
-//               description: description,
-//               onChangedImportant: (isImportant) =>
-//                   setState(() => this.isImportant = isImportant),
-//               onChangedNumber: (number) => setState(() => this.number = number),
-//               onChangedTitle: (title) => setState(() => this.title = title),
-//               onChangedDescription: (description) =>
-//                   setState(() => this.description = description),
-//             ),
-//           ),
-//         ),
-//       );
+    title = widget.listInstance?.title ?? '';
+    description = widget.listInstance?.description ?? '';
+    isPublic = widget.listInstance?.isPublic ?? false;
+    isTemplate = widget.listInstance?.isTemplate ?? false;
+    repeatOn = widget.listInstance?.repeatOn ??
+        [false, false, false, false, false, false, false];
+    repeatEvery = widget.listInstance?.repeatEvery != null
+        ? widget.listInstance!.repeatEvery!
+        : 0;
+  }
 
-//   Widget buildButton() {
-//     final isFormValid = title.isNotEmpty && description.isNotEmpty;
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          actions: [buildButton()],
+        ),
+        body: Hero(
+          tag: 'hero${widget.listInstance?.id}',
+          child: Form(
+            key: _formKey,
+            child: ListInstanceFormWidget(
+              title: title,
+              description: description,
+              isPublic: isPublic,
+              isTemplate: isTemplate,
+              repeatOn: repeatOn,
+              repeatEvery: repeatEvery,
+              onChangedTitle: (title) => setState(() => this.title = title),
+              onChangedDescription: (description) =>
+                  setState(() => this.description = description),
+              onChangedIsPublic: (isPublic) =>
+                  setState(() => this.isPublic = isPublic),
+              onChangedIsTemplate: (isTemplate) =>
+                  setState(() => this.isTemplate = isTemplate),
+              onChangedRepeatOn: (repeatOn) =>
+                  setState(() => this.repeatOn = repeatOn),
+              onChangedRepeatEvery: (repeatEvery) =>
+                  setState(() => this.repeatEvery = repeatEvery),
+            ),
+          ),
+        ),
+      );
 
-//     return Padding(
-//       padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-//       child: ElevatedButton(
-//         style: ElevatedButton.styleFrom(
-//           onPrimary: Colors.white,
-//           primary: isFormValid ? null : Colors.grey.shade700,
-//         ),
-//         onPressed: addOrUpdateDay,
-//         child: Text('Save'),
-//       ),
-//     );
-//   }
+  Widget buildButton() {
+    final isFormValid = title.isNotEmpty && description.isNotEmpty;
 
-//   void addOrUpdateDay() async {
-//     final isValid = _formKey.currentState!.validate();
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: isFormValid ? null : Colors.grey.shade700,
+        ),
+        onPressed: addOrUpdateListInstance,
+        child: Text('Save'),
+      ),
+    );
+  }
 
-//     if (isValid) {
-//       final isUpdating = widget.day != null;
+  void addOrUpdateListInstance() async {
+    final isValid = _formKey.currentState!.validate();
 
-//       if (isUpdating) {
-//         await updateDay();
-//       } else {
-//         await addDay();
-//       }
+    if (isValid) {
+      final isUpdating = widget.listInstance != null;
 
-//       Navigator.of(context).pop();
-//     }
-//   }
+      if (isUpdating) {
+        await updateListInstance();
+      } else {
+        await addListInstance();
+      }
 
-//   Future updateDay() async {
-//     final day = widget.day!.copy(
-//       isImportant: isImportant,
-//       number: number,
-//       title: title,
-//       description: description,
-//     );
+      Navigator.of(context).pop();
+    }
+  }
 
-//     await DaysDatabase.instance.update(day);
-//   }
+  Future updateListInstance() async {
+    // final listInstance = widget.listInstance!.copy(
+    //   isImportant: isImportant,
+    //   number: number,
+    //   title: title,
+    //   description: description,
+    // );
 
-//   Future addDay() async {
-//     final day = Day(
-//       title: title,
-//       isImportant: true,
-//       number: number,
-//       description: description,
-//       createdTime: DateTime.now(),
-//     );
+    // await ListInstancesDatabase.instance.update(listInstance);
+  }
 
-//     await DaysDatabase.instance.create(day);
-//   }
-// }
+  Future addListInstance() async {
+    // final listInstance = ListInstance(
+    //   title: title,
+    //   isImportant: true,
+    //   number: number,
+    //   description: description,
+    //   createdTime: DateTime.now(),
+    // );
+
+    // await ListInstancesDatabase.instance.create(listInstance);
+  }
+}

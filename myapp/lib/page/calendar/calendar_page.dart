@@ -61,8 +61,8 @@ class _CalendarsPageState extends State<CalendarsPage> {
   }
 
   bool isRepeatedToday(ListInstance instance, DateTime date) {
-    bool isRepeatedOn = instance.repeatOn != null
-        ? instance.repeatOn!.contains(date.weekday.toString())
+    bool isRepeatedOn = instance.repeatOn?.isNotEmpty ?? false
+        ? instance.repeatOn![date.weekday - 1]
         : false;
 
     bool isRepeatedEvery = instance.repeatEvery != null
