@@ -41,12 +41,8 @@ class ExercisesService {
     );
 
     if (maps.isNotEmpty) {
-      print('Matches for $maps are found!');
-
       return maps.map((e) => Exercise.fromJson(e)).toList();
     } else {
-      print('Matches for $search not found');
-
       return [];
     }
   }

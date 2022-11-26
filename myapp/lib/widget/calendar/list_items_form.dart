@@ -52,7 +52,7 @@ class ListItemInput extends StatefulWidget {
 }
 
 class _ListItemInputState extends State<ListItemInput> {
-  late List<Exercise>? exercises = [];
+  late List<Exercise> exercises = [];
   late Exercise? selectedExercise;
   late String? selectedExerciseInput = '';
   void initState() {
@@ -97,6 +97,12 @@ class _ListItemInputState extends State<ListItemInput> {
       if (element.name == ex) {
         setState(() {
           selectedExercise = element;
+          _controller.value = _controller.value.copyWith(
+            text: element.name,
+            selection: TextSelection.collapsed(offset: element.name.length),
+          );
+
+          exercises = [];
         });
       }
     }
@@ -122,82 +128,47 @@ class _ListItemInputState extends State<ListItemInput> {
     }).then((value) => value);
   }
 
+  var _controller = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Stack(
       children: [
-        SizedBox(
-          //width full screen
-          width: MediaQuery.of(context).size.width * 0.8,
-          child: Autocomplete<String>(
-            optionsBuilder: (TextEditingValue textEditingValue) {
-              if (textEditingValue.text == '') {
-                return const Iterable<String>.empty();
-              }
-              return searchExercisesByName(textEditingValue.text).then((value) {
-                return exercises!.map((e) => e.name);
-              });
-            },
-            fieldViewBuilder:
-                (context, textEditingController, focusNode, onFieldSubmitted) =>
-                    TextField(
-              textInputAction: TextInputAction.next,
-              controller: textEditingController,
-              focusNode: focusNode,
-              style: const TextStyle(fontSize: 18, color: Colors.white70),
-              onSubmitted: (value) {
-                onFieldSubmitted();
-              },
-              decoration: InputDecoration(
-                hintText: 'Search exercises',
-                hintStyle: const TextStyle(fontSize: 18, color: Colors.white70),
-                border: InputBorder.none,
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    textEditingController.clear();
-                  },
-                ),
-              ),
-            ),
-            optionsViewBuilder: (context, onSelected, options) {
-              return Material(
-                elevation: 4.0,
-                color: Colors.blueGrey[800],
-                child: SizedBox(
-                  height: 50,
-                  child: ListTileTheme(
-                    dense: true,
-                    selectedColor: Colors.white,
-                    tileColor: Colors.blueGrey[800],
-                    textColor: Colors.white70,
-                    selectedTileColor: Colors.blue[800],
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(8.0),
-                      itemCount: options.length,
-                      itemBuilder: (context, index) {
-                        final option = options.elementAt(index);
-                        return GestureDetector(
-                          onTap: () {
-                            onSelected(option);
-                          },
-                          child: ListTile(
-                            title: Text(
-                              option,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              );
-            },
-            onSelected: (String selection) {
-              selectExercise(selection);
-            },
+        TextField(
+          // move to next line when done
+          textInputAction: TextInputAction.next,
+          controller: _controller,
+          decoration: InputDecoration.collapsed(
+            // padding
+
+            hintText: "Search",
+            border: InputBorder.none,
           ),
+
+          onChanged: (value) {
+            searchExercisesByName(value);
+            setState(() {
+              selectedExerciseInput = value;
+            });
+          },
         ),
+        if (exercises.isNotEmpty)
+          Container(
+            margin: EdgeInsets.only(top: 50),
+            height: 200,
+            child: ListView.builder(
+              itemCount: exercises.length,
+              itemBuilder: (context, index) {
+                print(exercises[index].name);
+                String ex = exercises[index].name;
+                return InkWell(
+                  child: Text(exercises[index].name),
+                  onTap: () {
+                    selectExercise(ex);
+                  },
+                );
+              },
+            ),
+          ),
       ],
     );
 
@@ -218,6 +189,108 @@ class _ListItemInputState extends State<ListItemInput> {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Widget build(BuildContext context) {
+//     return Row(
+//       children: [
+//         SizedBox(
+//           //width full screen
+//           width: MediaQuery.of(context).size.width * 0.8,
+//           child: Autocomplete<String>(
+//             optionsBuilder: (TextEditingValue textEditingValue) {
+//               if (textEditingValue.text == '') {
+//                 return const Iterable<String>.empty();
+//               }
+//               return searchExercisesByName(textEditingValue.text).then((value) {
+//                 return exercises!.map((e) => e.name);
+//               });
+//             },
+//             fieldViewBuilder:
+//                 (context, textEditingController, focusNode, onFieldSubmitted) =>
+//                     TextField(
+//               textInputAction: TextInputAction.next,
+//               controller: textEditingController,
+//               focusNode: focusNode,
+//               style: const TextStyle(fontSize: 18, color: Colors.white70),
+//               onSubmitted: (value) {
+//                 onFieldSubmitted();
+//               },
+//               decoration: InputDecoration(
+//                 hintText: 'Search exercises',
+//                 hintStyle: const TextStyle(fontSize: 18, color: Colors.white70),
+//                 border: InputBorder.none,
+//                 suffixIcon: IconButton(
+//                   icon: const Icon(Icons.clear),
+//                   onPressed: () {
+//                     textEditingController.clear();
+//                   },
+//                 ),
+//               ),
+//             ),
+//             optionsViewBuilder: (context, onSelected, options) {
+//               return Material(
+//                 elevation: 4.0,
+//                 color: Colors.blueGrey[800],
+//                 child: SizedBox(
+//                   height: 50,
+//                   child: ListTileTheme(
+//                     dense: true,
+//                     selectedColor: Colors.white,
+//                     tileColor: Colors.blueGrey[800],
+//                     textColor: Colors.white70,
+//                     selectedTileColor: Colors.blue[800],
+//                     child: ListView.builder(
+//                       padding: const EdgeInsets.all(8.0),
+//                       itemCount: options.length,
+//                       itemBuilder: (context, index) {
+//                         final option = options.elementAt(index);
+//                         return GestureDetector(
+//                           onTap: () {
+//                             onSelected(option);
+//                           },
+//                           child: ListTile(
+//                             title: Text(
+//                               option,
+//                             ),
+//                           ),
+//                         );
+//                       },
+//                     ),
+//                   ),
+//                 ),
+//               );
+//             },
+//             onSelected: (String selection) {
+//               selectExercise(selection);
+//             },
+//           ),
+//         ),
+//       ],
+//     );
+
+    // if (selectedExercise != null)
+    //   IconButton(
+    //     icon: const Icon(Icons.add, color: Colors.white70),
+    //     onPressed: () {
+    //       createListItem();
+    //     },
+    //   ),
+  // }
 
 
 

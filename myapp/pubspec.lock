@@ -224,6 +224,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  super_tooltip:
+    dependency: "direct main"
+    description:
+      name: super_tooltip
+      sha256: c9b0f4808c4a9a20354110a9da85790d226c7c529202091c27fdcc4780fa497b
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   synchronized:
     dependency: transitive
     description:
