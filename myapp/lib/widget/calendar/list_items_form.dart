@@ -141,6 +141,7 @@ class _ListItemInputState extends State<ListItemInput> {
             fieldViewBuilder:
                 (context, textEditingController, focusNode, onFieldSubmitted) =>
                     TextField(
+              textInputAction: TextInputAction.next,
               controller: textEditingController,
               focusNode: focusNode,
               style: const TextStyle(fontSize: 18, color: Colors.white70),
@@ -148,12 +149,6 @@ class _ListItemInputState extends State<ListItemInput> {
                 onFieldSubmitted();
               },
               decoration: InputDecoration(
-                prefix: TextButton(
-                  onPressed: () {
-                    onFieldSubmitted();
-                  },
-                  child: Text(selectedExerciseInput!),
-                ),
                 hintText: 'Search exercises',
                 hintStyle: const TextStyle(fontSize: 18, color: Colors.white70),
                 border: InputBorder.none,
