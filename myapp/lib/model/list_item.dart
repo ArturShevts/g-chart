@@ -43,7 +43,7 @@ class ListItem {
   final int? quantity;
   final int? weight;
   final bool isCompleted;
-  final int orderNum;
+  late final int orderNum;
   late Exercise? exercise;
 
   ListItem(

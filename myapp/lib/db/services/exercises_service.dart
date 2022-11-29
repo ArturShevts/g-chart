@@ -58,7 +58,8 @@ class ExercisesService {
       print(maps.length.toString() + " maps " + ids.join(',') + " ids");
       return maps.map((e) => Exercise.fromJson(e)).toList();
     } else {
-      throw Exception('ID $ids not found');
+      return [];
+      // throw Exception('ID $ids not found');
     }
   }
 
