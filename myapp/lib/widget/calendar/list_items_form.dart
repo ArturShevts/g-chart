@@ -128,13 +128,12 @@ class _ListItemsFormState extends State<ListItemsForm> {
 //
 //
 //++++++++++++++++++++++++++++++++++++++++ITEM INPUT+++++++++++++++++++++++++++++++++++++++++++++++
-class ListItemInput extends StatelessWidget {
+class ListItemInput extends StatefulWidget {
   ListItem item;
   int itemIndex;
   final String itemString;
   final ValueChanged<String> onInputChanged;
   final ValueChanged<ListItem> onCreate;
-  var exercises = <Exercise>[];
 
   ListItemInput({
     Key? key,
@@ -145,107 +144,144 @@ class ListItemInput extends StatelessWidget {
     required this.onCreate,
   }) : super(key: key);
 
+  @override
+  State<ListItemInput> createState() => _ListItemInputState();
+}
+
+class _ListItemInputState extends State<ListItemInput> {
+  var exercises = <Exercise>[];
+  TextEditingController controller = TextEditingController();
+
   Future searchExercisesByName(String name) async {
-    exercises = await ExercisesService.instance.searchExercisesByName(name);
+    var res = await ExercisesService.instance.searchExercisesByName(name);
+    // setExerciseState(res);
+    setState(() {
+      exercises = res;
+    });
+  }
+
+  final FocusNode _focusNode = FocusNode();
+  OverlayEntry? _overlayEntry;
+  GlobalKey globalKey = GlobalKey();
+  final LayerLink _layerLink = LayerLink();
+
+  @override
+// init state
+  void initState() {
+    super.initState();
+    //overlay
+    OverlayState? overlayState = Overlay.of(context);
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      globalKey;
+    });
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        _overlayEntry = _createOverlay();
+
+        overlayState!.insert(_overlayEntry!);
+      } else {
+        _overlayEntry!.remove();
+      }
+    });
+//controller
+    controller = TextEditingController(text: widget.itemString);
+    controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: controller.text.length));
+    print("Building item ${widget.itemIndex}");
+  }
+
+  void selectExercise(String ex) async {
+    for (var element in exercises) {
+      if (element.name == ex) {
+        setState(() {
+          widget.onInputChanged(element.name);
+
+          exercises = [];
+        });
+      }
+    }
+  }
+
+  OverlayEntry _createOverlay() {
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
+
+    var size = renderBox.size;
+    return OverlayEntry(
+        builder: (context) => Positioned(
+              width: size.width,
+              child: CompositedTransformFollower(
+                link: _layerLink,
+                showWhenUnlinked: false,
+                offset: Offset(0.0, size.height + 5.0),
+                child: Material(
+                  color: Colors.black87,
+                  elevation: 5.0,
+                  child: Column(
+                    children: [
+                      for (var element in exercises)
+                        ListTile(
+                          dense: true,
+                          leading: Icon(
+                            //if category is strenth show icon
+                            getIcon(element.category),
+                            color: Colors.white,
+                          ),
+                          title: Text(
+                            element.name,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                            ),
+                          ),
+                          onTap: () => selectExercise(element.name),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ));
   }
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController controller =
-        TextEditingController(text: itemString);
-    controller.selection = TextSelection.fromPosition(
-        TextPosition(offset: controller.text.length));
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: TextField(
+        focusNode: _focusNode,
+        controller: controller,
+        onEditingComplete: () {
+          print("onEditingComplete");
+          FocusScope.of(context).nextFocus();
 
-    print("Building item $itemIndex");
-
-    return Stack(
-      alignment: Alignment.topCenter,
-      clipBehavior: Clip.none,
-      children: [
-        TextField(
-          controller: controller,
-          onEditingComplete: () {
-            print("onEditingComplete");
-            FocusScope.of(context).nextFocus();
-
-            // onInputChanged(controller.text);
-          },
-          textAlignVertical: TextAlignVertical.center,
-          textInputAction: TextInputAction.next,
-          style: const TextStyle(
-            color: Colors.white,
-          ),
-          onChanged: (value) {
-            searchExercisesByName(value);
-            print(exercises);
-          },
-          decoration: InputDecoration(
-            hintStyle: const TextStyle(color: Colors.white70),
-            hintText: "Add exercise ${item.exerciseId}",
-            border: InputBorder.none,
-            prefixIcon: ReorderableDragStartListener(
-              index: itemIndex,
-              child: GestureDetector(
-                child: const Icon(Icons.drag_handle),
-                onTapDown: (details) {
-                  // what to do when moving the item
-                  onInputChanged(controller.text);
-                  FocusScope.of(context).unfocus();
-                  controller.clear();
-                  print("tapped");
-                },
-              ),
-            ),
-          ),
+          // onInputChanged(controller.text);
+        },
+        textAlignVertical: TextAlignVertical.center,
+        textInputAction: TextInputAction.next,
+        style: const TextStyle(
+          color: Colors.white,
         ),
-        // if (exercises.isNotEmpty)
-        Positioned(
-          top: 50,
-          left: 50,
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            height: (20 + 30 * exercises.length).toDouble(),
-            width: 200,
-            child: ListView.builder(
-              itemCount: exercises.length > 4 ? 4 : exercises.length,
-              itemBuilder: (context, index) {
-                String name = exercises[index].name;
-
-                return InkWell(
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Icon(
-                          //if category is strenth show icon
-                          getIcon(exercises[index].category),
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        exercises[index].name,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    //wait a second before calling
-                    // Future.delayed(const Duration(milliseconds: 100), () {
-                    //   selectExercise(name);
-                    // });
-                  },
-                );
+        onChanged: (value) {
+          searchExercisesByName(value);
+          print(exercises);
+        },
+        decoration: InputDecoration(
+          hintStyle: const TextStyle(color: Colors.white70),
+          hintText: "Add exercise ${widget.item.exerciseId}",
+          border: InputBorder.none,
+          prefixIcon: ReorderableDragStartListener(
+            index: widget.itemIndex,
+            child: GestureDetector(
+              child: const Icon(Icons.drag_handle),
+              onTapDown: (details) {
+                // what to do when moving the item
+                widget.onInputChanged(controller.text);
+                FocusScope.of(context).unfocus();
+                controller.clear();
+                print("tapped");
               },
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -424,21 +460,21 @@ class ListItemInput extends StatelessWidget {
 
 
 
-//   // void selectExercise(String ex) async {
-//   //   for (var element in exercises!) {
-//   //     if (element.name == ex) {
-//   //       setState(() {
-//   //         selectedExercise = element;
-//   //         _controller.value = _controller.value.copyWith(
-//   //           text: element.name,
-//   //           selection: TextSelection.collapsed(offset: element.name.length),
-//   //         );
+  // void selectExercise(String ex) async {
+  //   for (var element in exercises!) {
+  //     if (element.name == ex) {
+  //       setState(() {
+  //         selectedExercise = element;
+  //         _controller.value = _controller.value.copyWith(
+  //           text: element.name,
+  //           selection: TextSelection.collapsed(offset: element.name.length),
+  //         );
 
-//   //         exercises = [];
-//   //       });
-//   //     }
-//   //   }
-//   // }
+  //         exercises = [];
+  //       });
+  //     }
+  //   }
+  // }
 
 //   // void getExercise() {
 //   //   ExercisesService.instance
