@@ -58,28 +58,10 @@ class _ListItemsFormState extends State<ListItemsForm> {
 
   @override
   void initState() {
-    var emptyListItem1 = emptyListItem.copy(exerciseId: 1);
-    var emptyListItem2 = emptyListItem.copy(exerciseId: 2);
-    var emptyListItem3 = emptyListItem.copy(exerciseId: 3);
-    var emptyListItem4 = emptyListItem.copy(exerciseId: 4);
+    var emptyListItem1 = emptyListItem.copy(exerciseId: 0);
 
     listItems = [
-      LocalItem(
-          item: emptyListItem1,
-          exercise: null,
-          displayString: 'dumbell 3 x 10 reps'),
-      LocalItem(
-          item: emptyListItem2,
-          exercise: null,
-          displayString: 'dumbell 2 x 10 reps'),
-      LocalItem(
-          item: emptyListItem3,
-          exercise: null,
-          displayString: 'dumbell 4 x 10 reps'),
-      LocalItem(
-          item: emptyListItem4,
-          exercise: null,
-          displayString: 'dumbell 1 x 10 reps'),
+      LocalItem(item: emptyListItem1, exercise: null, displayString: ''),
     ];
 
     super.initState();
@@ -109,6 +91,9 @@ class _ListItemsFormState extends State<ListItemsForm> {
                 final LocalItem item = listItems.removeAt(index);
                 item.displayString = description;
                 listItems.insert(index, item);
+                index == listItems.length - 1
+                    ? listItems.add(LocalItem(item: emptyListItem))
+                    : null;
                 setState(() {
                   listItems = res;
                 });
