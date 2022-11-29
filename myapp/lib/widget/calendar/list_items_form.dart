@@ -93,7 +93,7 @@ class _ListItemsFormState extends State<ListItemsForm> {
         children: <Widget>[
           for (int index = 0; index < listItems.length; index += 1)
             ListItemInput(
-              key: Key('$index'),
+              key: UniqueKey(),
               item: listItems[index].item,
               itemIndex: index,
               itemString: listItems[index].displayString ?? '',
@@ -105,7 +105,13 @@ class _ListItemsFormState extends State<ListItemsForm> {
               }),
               onInputChanged: (description) => setState(() {
                 print("changed description to $description");
-                listItems[index].displayString = description;
+                var res = listItems;
+                final LocalItem item = listItems.removeAt(index);
+                item.displayString = description;
+                listItems.insert(index, item);
+                setState(() {
+                  listItems = res;
+                });
               }),
             ),
         ],
@@ -148,46 +154,54 @@ class ListItemInput extends StatefulWidget {
   State<ListItemInput> createState() => _ListItemInputState();
 }
 
-class _ListItemInputState extends State<ListItemInput> {
+class _ListItemInputState extends State<ListItemInput>
+    with TickerProviderStateMixin {
   var exercises = <Exercise>[];
   TextEditingController controller = TextEditingController();
-
-  Future searchExercisesByName(String name) async {
-    var res = await ExercisesService.instance.searchExercisesByName(name);
-    // setExerciseState(res);
-    setState(() {
-      exercises = res;
-    });
-  }
 
   final FocusNode _focusNode = FocusNode();
   OverlayEntry? _overlayEntry;
   GlobalKey globalKey = GlobalKey();
   final LayerLink _layerLink = LayerLink();
+  OverlayState? _overlayState;
+  //exercise list event listener
 
   @override
 // init state
   void initState() {
+    print("tapped0");
+
     super.initState();
     //overlay
-    OverlayState? overlayState = Overlay.of(context);
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    _overlayState = Overlay.of(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       globalKey;
     });
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
         _overlayEntry = _createOverlay();
 
-        overlayState!.insert(_overlayEntry!);
+        _overlayState?.insert(_overlayEntry!);
       } else {
         _overlayEntry!.remove();
       }
     });
-//controller
+    //controller
     controller = TextEditingController(text: widget.itemString);
     controller.selection = TextSelection.fromPosition(
         TextPosition(offset: controller.text.length));
     print("Building item ${widget.itemIndex}");
+  }
+
+  Future searchExercisesByName(String name) async {
+    var res = await ExercisesService.instance.searchExercisesByName(name);
+    // setExerciseState(res);
+    setState(() {
+      exercises = res;
+      _overlayEntry = _createOverlay();
+
+      _overlayState?.insert(_overlayEntry!);
+    });
   }
 
   void selectExercise(String ex) async {
@@ -197,9 +211,20 @@ class _ListItemInputState extends State<ListItemInput> {
           widget.onInputChanged(element.name);
 
           exercises = [];
+
+          _overlayEntry?.remove();
+          controller.text = element.name;
         });
       }
     }
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    print("tapped1");
+
+    super.dispose();
   }
 
   OverlayEntry _createOverlay() {
@@ -215,24 +240,24 @@ class _ListItemInputState extends State<ListItemInput> {
                 offset: Offset(0.0, size.height + 5.0),
                 child: Material(
                   color: Colors.black87,
-                  elevation: 5.0,
                   child: Column(
                     children: [
-                      for (var element in exercises)
+                      for (var i = 0; i < exercises.length && i < 4; i++)
                         ListTile(
+                          visualDensity: VisualDensity(vertical: -2),
                           dense: true,
                           leading: Icon(
                             //if category is strenth show icon
-                            getIcon(element.category),
+                            getIcon(exercises[i].category),
                             color: Colors.white,
                           ),
                           title: Text(
-                            element.name,
+                            exercises[i].name,
                             style: const TextStyle(
                               color: Colors.white70,
                             ),
                           ),
-                          onTap: () => selectExercise(element.name),
+                          onTap: () => selectExercise(exercises[i].name),
                         ),
                     ],
                   ),
@@ -246,6 +271,8 @@ class _ListItemInputState extends State<ListItemInput> {
     return CompositedTransformTarget(
       link: _layerLink,
       child: TextField(
+        keyboardType: TextInputType.multiline,
+        maxLines: null,
         focusNode: _focusNode,
         controller: controller,
         onEditingComplete: () {
@@ -261,7 +288,6 @@ class _ListItemInputState extends State<ListItemInput> {
         ),
         onChanged: (value) {
           searchExercisesByName(value);
-          print(exercises);
         },
         decoration: InputDecoration(
           hintStyle: const TextStyle(color: Colors.white70),
@@ -273,10 +299,11 @@ class _ListItemInputState extends State<ListItemInput> {
               child: const Icon(Icons.drag_handle),
               onTapDown: (details) {
                 // what to do when moving the item
+
                 widget.onInputChanged(controller.text);
                 FocusScope.of(context).unfocus();
-                controller.clear();
-                print("tapped");
+
+                print("tapped3");
               },
             ),
           ),
@@ -407,74 +434,71 @@ class _ListItemInputState extends State<ListItemInput> {
 //     //     });
 //     //   },
 //     // );
-    // const SizedBox(height: 40, width: 300),
-    // if (exercises.isNotEmpty)
-    //   Container(
-    //     padding: const EdgeInsets.all(8),
-    //     decoration: BoxDecoration(
-    //       color: Colors.black54,
-    //       borderRadius: BorderRadius.circular(5),
-    //     ),
-    //     margin: const EdgeInsets.only(top: 50),
-    //     height: 300,
-    //     width: 200,
-    //     child: ListView.builder(
-    //       itemCount: exercises.length > 4 ? 4 : exercises.length,
-    //       itemBuilder: (context, index) {
-    //         String name = exercises[index].name;
+// const SizedBox(height: 40, width: 300),
+// if (exercises.isNotEmpty)
+//   Container(
+//     padding: const EdgeInsets.all(8),
+//     decoration: BoxDecoration(
+//       color: Colors.black54,
+//       borderRadius: BorderRadius.circular(5),
+//     ),
+//     margin: const EdgeInsets.only(top: 50),
+//     height: 300,
+//     width: 200,
+//     child: ListView.builder(
+//       itemCount: exercises.length > 4 ? 4 : exercises.length,
+//       itemBuilder: (context, index) {
+//         String name = exercises[index].name;
 
-    //         return InkWell(
-    //           child: Row(
-    //             children: [
-    //               Padding(
-    //                 padding: const EdgeInsets.all(8.0),
-    //                 child: Icon(
-    //                   //if category is strenth show icon
-    //                   getIcon(exercises[index].category),
-    //                   color: Colors.white,
-    //                 ),
-    //               ),
-    //               Text(
-    //                 exercises[index].name,
-    //                 style: const TextStyle(
-    //                   color: Colors.white70,
-    //                 ),
-    //               ),
-    //             ],
-    //           ),
-    //           onTap: () {
-    //             //wait a second before calling
-    //             Future.delayed(const Duration(milliseconds: 100), () {
-    //               selectExercise(name);
-    //             });
-    //           },
-    //         );
-    //       },
-    //     ),
-    //   ),
+//         return InkWell(
+//           child: Row(
+//             children: [
+//               Padding(
+//                 padding: const EdgeInsets.all(8.0),
+//                 child: Icon(
+//                   //if category is strenth show icon
+//                   getIcon(exercises[index].category),
+//                   color: Colors.white,
+//                 ),
+//               ),
+//               Text(
+//                 exercises[index].name,
+//                 style: const TextStyle(
+//                   color: Colors.white70,
+//                 ),
+//               ),
+//             ],
+//           ),
+//           onTap: () {
+//             //wait a second before calling
+//             Future.delayed(const Duration(milliseconds: 100), () {
+//               selectExercise(name);
+//             });
+//           },
+//         );
+//       },
+//     ),
+//   ),
 //     //   ],
 //     // );
 //   }
 // }
 
+// void selectExercise(String ex) async {
+//   for (var element in exercises!) {
+//     if (element.name == ex) {
+//       setState(() {
+//         selectedExercise = element;
+//         _controller.value = _controller.value.copyWith(
+//           text: element.name,
+//           selection: TextSelection.collapsed(offset: element.name.length),
+//         );
 
-
-
-  // void selectExercise(String ex) async {
-  //   for (var element in exercises!) {
-  //     if (element.name == ex) {
-  //       setState(() {
-  //         selectedExercise = element;
-  //         _controller.value = _controller.value.copyWith(
-  //           text: element.name,
-  //           selection: TextSelection.collapsed(offset: element.name.length),
-  //         );
-
-  //         exercises = [];
-  //       });
-  //     }
-  //   }
-  // }
+//         exercises = [];
+//       });
+//     }
+//   }
+// }
 
 //   // void getExercise() {
 //   //   ExercisesService.instance
@@ -497,17 +521,6 @@ class _ListItemInputState extends State<ListItemInput> {
 //   //   }).then((value) => value);
 //   // }
 
-
-
-
-
-
-
-
-
-
-
-  
 //   // createListItem() async {
 //   //   ListItem? item = widget.item;
 //   //   if (selectedExercise != null) {
