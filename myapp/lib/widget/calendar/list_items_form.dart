@@ -37,32 +37,40 @@ getIcon(String? category) {
 }
 
 class LocalItem {
-  ListItem item;
-  Exercise? exercise;
-  String? displayString;
-  LocalItem({required this.item, this.exercise, this.displayString});
+  String exerciseId;
+  String exerciseName;
+  String displayString;
+  String reps;
+  String weight;
+  String quantity;
+
+  LocalItem(
+      {required this.exerciseId,
+      required this.displayString,
+      required this.exerciseName,
+      required this.reps,
+      required this.weight,
+      required this.quantity});
 }
 
 class _ListItemsFormState extends State<ListItemsForm> {
   List<LocalItem> listItems = [];
-  bool displaySecondLine = false;
-  IconData displayIcon = Icons.drag_handle;
+  LocalItem emptyLocalItem = LocalItem(
+      exerciseId: '',
+      exerciseName: '',
+      displayString: '',
+      reps: '',
+      weight: '',
+      quantity: '');
 
-  ListItem emptyListItem = ListItem(
-    userId: 0,
-    listInstanceId: 0,
-    exerciseId: 0,
-    isCompleted: false,
-    orderNum: 0,
-  );
+  @override
+  // TODO: implement context
+  BuildContext get context => super.context;
+  bool displaySecondLine = false;
 
   @override
   void initState() {
-    var emptyListItem1 = emptyListItem.copy(exerciseId: 0);
-
-    listItems = [
-      LocalItem(item: emptyListItem1, exercise: null, displayString: ''),
-    ];
+    listItems = [emptyLocalItem];
 
     super.initState();
   }
@@ -76,29 +84,27 @@ class _ListItemsFormState extends State<ListItemsForm> {
           for (int index = 0; index < listItems.length; index += 1)
             ListItemInput(
               key: UniqueKey(),
-              item: listItems[index].item,
               itemIndex: index,
-              itemString: listItems[index].displayString ?? '',
-              onCreate: (item) => setState(() {
-                listItems.addAll(
-                    [LocalItem(item: item), LocalItem(item: emptyListItem)]);
-
-                displayIcon = getIcon(item.exercise?.category);
-              }),
-              onInputChanged: (description) => setState(() {
-                print("changed description to $description");
-                var res = listItems;
-                final LocalItem item = listItems.removeAt(index);
-                item.displayString = description;
-                listItems.insert(index, item);
-                index == listItems.length - 1
-                    ? listItems.add(LocalItem(item: emptyListItem))
-                    : null;
+              inputData: listItems[index],
+              onClickOut: (value) {
                 setState(() {
-                  listItems = res;
+                  listItems[index].displayString = value.displayString;
                 });
-              }),
-            ),
+              },
+              onRemove: (value) {
+                setState(() {
+                  listItems.removeAt(index);
+                });
+              },
+              onClickEnter: (item) {
+                setState(() {
+                  listItems[index] = item;
+                  listItems.insert(index + 1, emptyLocalItem);
+                });
+              },
+              onInputValid: (i) {},
+              onMove: (i) {},
+            )
         ],
         onReorder: (oldIndex, newIndex) => setState(() {
           setState(() {
@@ -120,19 +126,23 @@ class _ListItemsFormState extends State<ListItemsForm> {
 //
 //++++++++++++++++++++++++++++++++++++++++ITEM INPUT+++++++++++++++++++++++++++++++++++++++++++++++
 class ListItemInput extends StatefulWidget {
-  ListItem item;
+  LocalItem inputData;
   int itemIndex;
-  final String itemString;
-  final ValueChanged<String> onInputChanged;
-  final ValueChanged<ListItem> onCreate;
+  final ValueChanged<LocalItem> onInputValid;
+  final ValueChanged<LocalItem> onClickEnter;
+  final ValueChanged<LocalItem> onMove;
+  final ValueChanged<LocalItem> onClickOut;
+  final ValueChanged<LocalItem> onRemove;
 
   ListItemInput({
     Key? key,
-    required this.item,
+    required this.inputData,
     required this.itemIndex,
-    required this.itemString,
-    required this.onInputChanged,
-    required this.onCreate,
+    required this.onInputValid,
+    required this.onClickEnter,
+    required this.onMove,
+    required this.onClickOut,
+    required this.onRemove,
   }) : super(key: key);
 
   @override
@@ -141,40 +151,52 @@ class ListItemInput extends StatefulWidget {
 
 class _ListItemInputState extends State<ListItemInput>
     with TickerProviderStateMixin {
-  var exercises = <Exercise>[];
-  TextEditingController controller = TextEditingController();
+  List<Exercise> exercises = [];
+  late LocalItem inputData;
+
+  TextEditingController fieldController = TextEditingController();
 
   final FocusNode _focusNode = FocusNode();
+  final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   GlobalKey globalKey = GlobalKey();
-  final LayerLink _layerLink = LayerLink();
   OverlayState? _overlayState;
-  //exercise list event listener
 
   @override
-// init state
   void initState() {
-    print("tapped0");
+    print("init item state ${widget.itemIndex} ${widget.key}");
 
     super.initState();
+    inputData = widget.inputData;
+//focus
+
+    FocusManager.instance.primaryFocus == null
+        ? FocusScope.of(context).requestFocus(_focusNode)
+        : null;
+
     //overlay
     _overlayState = Overlay.of(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       globalKey;
     });
     _focusNode.addListener(() {
+      print("focus node ${_focusNode.hasFocus}");
       if (_focusNode.hasFocus) {
         _overlayEntry = _createOverlay();
 
         _overlayState?.insert(_overlayEntry!);
       } else {
+        print("remove overlay because focus node ${_focusNode.nearestScope}");
+
         _overlayEntry!.remove();
+        _overlayState?.insert(_overlayEntry!);
       }
     });
     //controller
-    controller = TextEditingController(text: widget.itemString);
-    controller.selection = TextSelection.fromPosition(
-        TextPosition(offset: controller.text.length));
+    fieldController =
+        TextEditingController(text: widget.inputData.displayString);
+    fieldController.selection = TextSelection.fromPosition(
+        TextPosition(offset: fieldController.text.length));
     print("Building item ${widget.itemIndex}");
   }
 
@@ -193,12 +215,17 @@ class _ListItemInputState extends State<ListItemInput>
     for (var element in exercises) {
       if (element.name == ex) {
         setState(() {
-          widget.onInputChanged(element.name);
-
           exercises = [];
 
           _overlayEntry?.remove();
-          controller.text = element.name;
+          fieldController.text = element.name;
+          fieldController.selection = TextSelection.fromPosition(
+              TextPosition(offset: fieldController.text.length));
+          _focusNode.requestFocus();
+          inputData.exerciseId = element.id.toString();
+          inputData.exerciseName = element.name;
+
+          widget.onInputValid(inputData);
         });
       }
     }
@@ -208,6 +235,9 @@ class _ListItemInputState extends State<ListItemInput>
   void dispose() {
     // TODO: implement dispose
     print("tapped1");
+    // _focusNode.dispose();
+    // _overlayEntry?.remove();
+    // _overlayState?.dispose();
 
     super.dispose();
   }
@@ -229,6 +259,8 @@ class _ListItemInputState extends State<ListItemInput>
                     children: [
                       for (var i = 0; i < exercises.length && i < 4; i++)
                         ListTile(
+                          onLongPress: () => selectExercise(exercises[i].name),
+                          onTap: () => selectExercise(exercises[i].name),
                           visualDensity: VisualDensity(vertical: -2),
                           dense: true,
                           leading: Icon(
@@ -242,8 +274,7 @@ class _ListItemInputState extends State<ListItemInput>
                               color: Colors.white70,
                             ),
                           ),
-                          onTap: () => selectExercise(exercises[i].name),
-                        ),
+                        )
                     ],
                   ),
                 ),
@@ -256,10 +287,15 @@ class _ListItemInputState extends State<ListItemInput>
     return CompositedTransformTarget(
       link: _layerLink,
       child: TextField(
-        keyboardType: TextInputType.multiline,
+        onSubmitted: (value) {
+          inputData.displayString = value;
+          widget.onClickEnter(inputData);
+        },
+        onTapOutside: (event) {},
+        keyboardType: TextInputType.text,
         maxLines: null,
         focusNode: _focusNode,
-        controller: controller,
+        controller: fieldController,
         onEditingComplete: () {
           print("onEditingComplete");
           FocusScope.of(context).nextFocus();
@@ -272,11 +308,29 @@ class _ListItemInputState extends State<ListItemInput>
           color: Colors.white,
         ),
         onChanged: (value) {
-          searchExercisesByName(value);
+          if (inputData.displayString.isNotEmpty) {
+            if (value.contains(inputData.displayString)) {
+              var cutValue =
+                  value.substring(inputData.displayString.length, value.length);
+              var sets = cutValue.split(RegExp(r'[^0-9]')).first;
+              var reps = cutValue.split(RegExp(r'[^0-9]')).elementAt(1);
+              var weight = cutValue.split(RegExp(r'[^0-9]')).last;
+            } else {
+              setState(() {
+                inputData.exerciseId = '';
+              });
+            }
+
+            // regex extract number from string after Substring
+          }
+
+          if (value.length > 1) {
+            searchExercisesByName(value);
+          }
         },
         decoration: InputDecoration(
           hintStyle: const TextStyle(color: Colors.white70),
-          hintText: "Add exercise ${widget.item.exerciseId}",
+          hintText: "Add exercise",
           border: InputBorder.none,
           prefixIcon: ReorderableDragStartListener(
             index: widget.itemIndex,
@@ -284,11 +338,9 @@ class _ListItemInputState extends State<ListItemInput>
               child: const Icon(Icons.drag_handle),
               onTapDown: (details) {
                 // what to do when moving the item
-
-                widget.onInputChanged(controller.text);
-                FocusScope.of(context).unfocus();
-
-                print("tapped3");
+                inputData.displayString = fieldController.text;
+                widget.onMove(inputData);
+                // FocusScope.of(context).requestFocus(FocusNode());
               },
             ),
           ),
@@ -297,248 +349,3 @@ class _ListItemInputState extends State<ListItemInput>
     );
   }
 }
-
-// class ListItemInput extends StatefulWidget {
-//   ListItem? item;
-//   int itemIndex;
-//   String? itemString;
-//   ValueChanged<String> onInputChanged;
-//   final ValueChanged<ListItem> onCreate;
-
-//   ListItemInput({
-//     required this.itemIndex,
-//     required this.onInputChanged,
-//     required this.onCreate,
-//     this.itemString,
-//     super.key,
-//     this.item,
-//   });
-
-//   @override
-//   State<ListItemInput> createState() => _ListItemInputState();
-// }
-
-// class _ListItemInputState extends State<ListItemInput> {
-//   late ValueChanged<String> onInputChanged;
-
-//   late List<Exercise> exercises = [];
-//   late Exercise? selectedExercise;
-//   late String? selectedExerciseInput = '';
-//   late String? itemString;
-//   late TextEditingController _controller = TextEditingController();
-//   @override
-//   // TODO: implement wantKeepAlive
-//   bool get wantKeepAlive => true;
-//   @override
-//   void initState() {
-//     super.initState();
-
-//     ListItem? item = widget.item;
-//     selectedExercise = null;
-//     print(widget.itemString);
-//     _controller = TextEditingController(text: widget.itemString);
-
-//     if (item != null || item!.exerciseId != 0) {
-//       // getExercise();
-//     } else {
-//       selectedExerciseInput = '';
-//     }
-//   }
-
-//   @override
-//   void dispose() {
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return TextField(
-//       controller: _controller,
-//       // onEditingComplete:
-//       //     //what to do  when editing is complete
-//       //     createListItem,
-//       textAlignVertical: TextAlignVertical.center,
-//       textInputAction: () {
-// // what to do when the user presses the done button on the keyboard
-
-//         // createListItem();
-//         return TextInputAction.next;
-//       }(),
-//       style: const TextStyle(
-//         color: Colors.white,
-//       ),
-//       onChanged: onInputChanged,
-//       // (value) {
-//       //   // what to do when typing
-//       //   // searchExercisesByName(value);
-//       //   widget.onInputChanged = value;
-//       //   setState(() {
-//       //     widget.onInputChanged = value;
-//       //   });
-//       // }
-//       // ,
-//       decoration: InputDecoration(
-//         hintStyle: const TextStyle(color: Colors.white70),
-//         hintText: "Add exercise ${widget.item?.exerciseId}",
-//         border: InputBorder.none,
-//         prefixIcon: ReorderableDragStartListener(
-//           index: widget.itemIndex,
-//           child: GestureDetector(
-//             child: const Icon(Icons.drag_handle),
-//             onTapDown: (details) {
-//               // what to do when moving the item
-
-//               FocusScope.of(context).unfocus();
-//               _controller.clear();
-//               print("tapped");
-//             },
-//           ),
-//         ),
-//       ),
-//     );
-
-//     // return Stack(
-//     //   children: [
-//     // return TextField(
-//     //   onEditingComplete: createListItem,
-//     //   textAlignVertical: TextAlignVertical.center,
-//     //   textInputAction: TextInputAction.next,
-//     //   style: const TextStyle(
-//     //     color: Colors.white,
-//     //   ),
-//     //   controller: _controller,
-//     //   decoration: InputDecoration(
-//     //     hintStyle: const TextStyle(color: Colors.white70),
-//     //     hintText: "Add exercise ${widget.itemIndex}",
-//     //     border: InputBorder.none,
-//     //   ),
-//     //   onChanged: (value) {
-//     //     searchExercisesByName(value);
-//     //     setState(() {
-//     //       selectedExerciseInput = value;
-//     //     });
-//     //   },
-//     // );
-// const SizedBox(height: 40, width: 300),
-// if (exercises.isNotEmpty)
-//   Container(
-//     padding: const EdgeInsets.all(8),
-//     decoration: BoxDecoration(
-//       color: Colors.black54,
-//       borderRadius: BorderRadius.circular(5),
-//     ),
-//     margin: const EdgeInsets.only(top: 50),
-//     height: 300,
-//     width: 200,
-//     child: ListView.builder(
-//       itemCount: exercises.length > 4 ? 4 : exercises.length,
-//       itemBuilder: (context, index) {
-//         String name = exercises[index].name;
-
-//         return InkWell(
-//           child: Row(
-//             children: [
-//               Padding(
-//                 padding: const EdgeInsets.all(8.0),
-//                 child: Icon(
-//                   //if category is strenth show icon
-//                   getIcon(exercises[index].category),
-//                   color: Colors.white,
-//                 ),
-//               ),
-//               Text(
-//                 exercises[index].name,
-//                 style: const TextStyle(
-//                   color: Colors.white70,
-//                 ),
-//               ),
-//             ],
-//           ),
-//           onTap: () {
-//             //wait a second before calling
-//             Future.delayed(const Duration(milliseconds: 100), () {
-//               selectExercise(name);
-//             });
-//           },
-//         );
-//       },
-//     ),
-//   ),
-//     //   ],
-//     // );
-//   }
-// }
-
-// void selectExercise(String ex) async {
-//   for (var element in exercises!) {
-//     if (element.name == ex) {
-//       setState(() {
-//         selectedExercise = element;
-//         _controller.value = _controller.value.copyWith(
-//           text: element.name,
-//           selection: TextSelection.collapsed(offset: element.name.length),
-//         );
-
-//         exercises = [];
-//       });
-//     }
-//   }
-// }
-
-//   // void getExercise() {
-//   //   ExercisesService.instance
-//   //       .readExercise(widget.item!.exerciseId)
-//   //       .then((value) {
-//   //     setState(() {
-//   //       selectedExercise = value;
-//   //       print("exercise SEleced: ${selectedExercise!.name}");
-//   //     });
-//   //   });
-//   // }
-
-//   // Future searchExercisesByName(String name) async {
-//   //   return await ExercisesService.instance
-//   //       .searchExercisesByName(name)
-//   //       .then((value) {
-//   //     setState(() {
-//   //       exercises = value;
-//   //     });
-//   //   }).then((value) => value);
-//   // }
-
-//   // createListItem() async {
-//   //   ListItem? item = widget.item;
-//   //   if (selectedExercise != null) {
-//   //     print(jsonEncode(item) + jsonEncode(selectedExercise));
-
-//   //     if (item != null) {
-//   //       item.copy(
-//   //         exerciseId: selectedExercise!.id,
-//   //         listInstanceId: 0,
-//   //         userId: 0,
-//   //         quantity: 0,
-//   //         sets: 0,
-//   //         weight: 0,
-//   //         isCompleted: false,
-//   //         orderNum: 0,
-
-//   //         /// handle order num
-//   //       );
-//   //       widget.onCreate(item);
-//   //     } else {
-//   //       item = ListItem(
-//   //         exerciseId: selectedExercise!.id!,
-//   //         listInstanceId: 0,
-//   //         userId: 0,
-//   //         quantity: 0,
-//   //         sets: 0,
-//   //         weight: 0,
-//   //         isCompleted: false,
-//   //         orderNum: 0,
-
-//   //         /// handle order num
-//   //       );
-//   //       widget.onCreate(item);
-//   //     }
-//   //   }
-//   // }

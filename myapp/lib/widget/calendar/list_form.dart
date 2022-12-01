@@ -34,20 +34,40 @@ class ListInstanceFormWidget extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+  Widget build(BuildContext context) {
+    print('Build description');
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Switch(
+                  value: isTemplate,
+                  onChanged: onChangedIsTemplate,
+                ),
+                const Text(
+                  'Make List a Template?',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            if (isTemplate)
               Row(
                 children: [
                   Switch(
-                    value: isTemplate,
-                    onChanged: onChangedIsTemplate,
+                    value: isPublic,
+                    onChanged: onChangedIsPublic,
                   ),
                   const Text(
-                    'Make List a Template?',
+                    'Make Template Public?',
                     style: TextStyle(
                       color: Colors.white70,
                       fontWeight: FontWeight.bold,
@@ -56,69 +76,53 @@ class ListInstanceFormWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              if (isTemplate)
-                Row(
-                  children: [
-                    Switch(
-                      value: isPublic,
-                      onChanged: onChangedIsPublic,
+            buildTitle(),
+            const SizedBox(height: 8),
+            buildDescription(),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    repeatEvery == 0
+                        ? repeatOn!.contains(true)
+                            ? 'Repeat on days:'
+                            : 'Never Repeat'
+                        : 'Repeat every $repeatEvery days',
+                    textAlign: TextAlign.left,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 20,
                     ),
-                    const Text(
-                      'Make Template Public?',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              buildTitle(),
-              const SizedBox(height: 8),
-              buildDescription(),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      repeatEvery == 0
-                          ? repeatOn!.contains(true)
-                              ? 'Repeat on days:'
-                              : 'Never Repeat'
-                          : 'Repeat every $repeatEvery days',
-                      textAlign: TextAlign.left,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 20,
-                      ),
+              ],
+            ),
+            buildRepeatOnWeekdays(),
+            const SizedBox(height: 8),
+            Row(
+              children: const [
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    "Select Interval:",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 18,
                     ),
                   ),
-                ],
-              ),
-              buildRepeatOnWeekdays(),
-              const SizedBox(height: 8),
-              Row(
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      "Select Interval:",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              buildRepeatEvery(),
-              const SizedBox(height: 8),
-              ListItemsForm(listInstance: null),
-            ],
-          ),
+                ),
+              ],
+            ),
+            buildRepeatEvery(),
+            const SizedBox(height: 8),
+            ListItemsForm(listInstance: null),
+          ],
         ),
-      );
+      ),
+    );
+  }
 
   Widget buildTitle() => TextFormField(
         maxLines: 1,
@@ -138,20 +142,25 @@ class ListInstanceFormWidget extends StatelessWidget {
         onChanged: onChangedTitle,
       );
 
-  Widget buildDescription() => TextFormField(
-        maxLines: 5,
-        initialValue: description,
-        style: const TextStyle(color: Colors.white60, fontSize: 18),
-        decoration: const InputDecoration(
-          border: InputBorder.none,
-          hintText: 'Description...',
-          hintStyle: TextStyle(color: Colors.white60),
-        ),
-        validator: (title) => title != null && title.isEmpty
-            ? 'The description cannot be empty'
-            : null,
-        onChanged: onChangedDescription,
-      );
+  Widget buildDescription() {
+    print("build desc");
+    // FocusNode focusNode = new FocusNode();
+    return TextFormField(
+      onTapOutside: (ex) => FocusManager.instance.primaryFocus?.unfocus(),
+      maxLines: 5,
+      initialValue: description,
+      style: const TextStyle(color: Colors.white60, fontSize: 18),
+      decoration: const InputDecoration(
+        border: InputBorder.none,
+        hintText: 'Description...',
+        hintStyle: TextStyle(color: Colors.white60),
+      ),
+      validator: (title) => title != null && title.isEmpty
+          ? 'The description cannot be empty'
+          : null,
+      onChanged: onChangedDescription,
+    );
+  }
 
   Widget buildRepeatOnWeekdays() => WeekdaySelector(
         onChanged: (day) {

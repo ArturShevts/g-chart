@@ -42,36 +42,39 @@ class _AddEditListPageState extends State<AddEditListPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          actions: [buildButton()],
-        ),
-        body: Hero(
-          tag: 'hero${widget.listInstance?.id}',
-          child: Form(
-            key: _formKey,
-            child: ListInstanceFormWidget(
-              title: title,
-              description: description,
-              isPublic: isPublic,
-              isTemplate: isTemplate,
-              repeatOn: repeatOn,
-              repeatEvery: repeatEvery,
-              onChangedTitle: (title) => setState(() => this.title = title),
-              onChangedDescription: (description) =>
-                  setState(() => this.description = description),
-              onChangedIsPublic: (isPublic) =>
-                  setState(() => this.isPublic = isPublic),
-              onChangedIsTemplate: (isTemplate) =>
-                  setState(() => this.isTemplate = isTemplate),
-              onChangedRepeatOn: (repeatOn) =>
-                  setState(() => this.repeatOn = repeatOn),
-              onChangedRepeatEvery: (repeatEvery) =>
-                  setState(() => this.repeatEvery = repeatEvery),
-            ),
+  Widget build(BuildContext context) {
+    print("$description $title");
+    return Scaffold(
+      appBar: AppBar(
+        actions: [buildButton()],
+      ),
+      body: Hero(
+        tag: 'hero${widget.listInstance?.id}',
+        child: Form(
+          key: _formKey,
+          child: ListInstanceFormWidget(
+            title: title,
+            description: description,
+            isPublic: isPublic,
+            isTemplate: isTemplate,
+            repeatOn: repeatOn,
+            repeatEvery: repeatEvery,
+            onChangedTitle: (title) => this.title = title,
+            onChangedDescription: (description) =>
+                this.description = description,
+            onChangedIsPublic: (isPublic) =>
+                setState(() => this.isPublic = isPublic),
+            onChangedIsTemplate: (isTemplate) =>
+                setState(() => this.isTemplate = isTemplate),
+            onChangedRepeatOn: (repeatOn) =>
+                setState(() => this.repeatOn = repeatOn),
+            onChangedRepeatEvery: (repeatEvery) =>
+                setState(() => this.repeatEvery = repeatEvery),
           ),
         ),
-      );
+      ),
+    );
+  }
 
   Widget buildButton() {
     final isFormValid = title.isNotEmpty && description.isNotEmpty;
