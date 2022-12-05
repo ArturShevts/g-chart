@@ -44,6 +44,7 @@ class LocalItem {
   String reps;
   String weight;
   String quantity;
+  bool hidden;
 
   LocalItem({
     required this.exerciseId,
@@ -52,6 +53,7 @@ class LocalItem {
     required this.reps,
     required this.weight,
     required this.quantity,
+    required this.hidden,
   });
 
   LocalItem copy(
@@ -61,7 +63,8 @@ class LocalItem {
           String? reps,
           String? weight,
           String? quantity,
-          bool? selected}) =>
+          bool? selected,
+          bool? hidden}) =>
       LocalItem(
         exerciseId: exerciseId ?? this.exerciseId,
         exerciseName: exerciseName ?? this.exerciseName,
@@ -69,6 +72,7 @@ class LocalItem {
         reps: reps ?? this.reps,
         weight: weight ?? this.weight,
         quantity: quantity ?? this.quantity,
+        hidden: hidden ?? this.hidden,
       );
 }
 
@@ -82,6 +86,7 @@ class _ListItemsFormState extends State<ListItemsForm> {
     reps: '',
     weight: '',
     quantity: '',
+    hidden: false,
   );
 
   @override
@@ -105,7 +110,7 @@ class _ListItemsFormState extends State<ListItemsForm> {
         GestureDetector(
             onTap: () {
               print("HIDE!!!!!!!!!!");
-              SystemChannels.textInput.invokeMethod('TextInput.hide');
+              // SystemChannels.textInput.invokeMethod('TextInput.hide');
             },
             child: Container(
               height: 75,
@@ -126,6 +131,11 @@ class _ListItemsFormState extends State<ListItemsForm> {
                   key: UniqueKey(),
                   itemIndex: index,
                   inputData: listItems[index],
+                  onFocus: (value) {
+                    var newItem = emptyLocalItem.copy(hidden: true);
+                    listItems.insert(index + 1, newItem);
+                    activeIndex = index + 1;
+                  },
                   activeIndex: () {
                     var i = activeIndex;
 
@@ -138,7 +148,12 @@ class _ListItemsFormState extends State<ListItemsForm> {
                       return false;
                     }
                   }(),
-                  onClickOut: (value) {},
+                  onClickOut: (value) {
+                    setState(() {
+                      activeIndex = null;
+                      listItems.removeAt(index + 1);
+                    });
+                  },
                   onRemove: (value) {
                     setState(() {
                       listItems.removeAt(index);
@@ -146,9 +161,7 @@ class _ListItemsFormState extends State<ListItemsForm> {
                   },
                   onClickEnter: (item) {
                     setState(() {
-                      listItems[index] = item;
-                      var newItem = emptyLocalItem.copy();
-                      listItems.insert(index + 1, newItem);
+                      listItems[index + 1].hidden = false;
                       activeIndex = index + 1;
                     });
                   },
@@ -182,6 +195,7 @@ class ListItemInput extends StatefulWidget {
   int itemIndex;
   bool activeIndex;
 
+  final ValueChanged<LocalItem> onFocus;
   final ValueChanged<LocalItem> onInputValid;
   final ValueChanged<LocalItem> onClickEnter;
   final ValueChanged<LocalItem> onMove;
@@ -198,6 +212,7 @@ class ListItemInput extends StatefulWidget {
     required this.onMove,
     required this.onClickOut,
     required this.onRemove,
+    required this.onFocus,
   }) : super(key: key);
 
   @override
@@ -238,12 +253,13 @@ class _ListItemInputState extends State<ListItemInput>
     _focusNode.addListener(() {
       print("focus node ${_focusNode.hasFocus}");
       if (_focusNode.hasFocus) {
+        widget.onFocus(inputData);
         _overlayEntry = _createOverlay();
 
         _overlayState?.insert(_overlayEntry!);
       } else {
         print("remove overlay because focus node ${_focusNode.nearestScope}");
-
+        // widget.onClickOut(inputData);
         _overlayEntry!.remove();
         _overlayState?.insert(_overlayEntry!);
       }
@@ -352,69 +368,70 @@ class _ListItemInputState extends State<ListItemInput>
   Widget build(BuildContext context) {
     return CompositedTransformTarget(
       link: _layerLink,
-      child: TextField(
-        onSubmitted: (value) {
-          SystemChannels.textInput.invokeMethod('TextInput.show');
+      child: Visibility(
+        visible: !widget.inputData.hidden,
+        child: TextField(
+          onSubmitted: (value) {
+            SystemChannels.textInput.invokeMethod('TextInput.show');
 
-          inputData.displayString = value;
-          widget.onClickEnter(inputData);
-        },
-        onTapOutside: (event) {
-          if (_overlayState == null) {
-            SystemChannels.textInput.invokeMethod('TextInput.hide');
-          }
-          widget.onClickOut(inputData);
-        },
-        keyboardType: TextInputType.text,
-        maxLines: null,
-        focusNode: _focusNode,
-        controller: fieldController,
-        onEditingComplete: () {
-          print("onEditingComplete");
-          FocusScope.of(context).nextFocus();
+            inputData.displayString = value;
+            widget.onClickEnter(inputData);
+          },
+          onTapOutside: (event) {
+            if (_overlayState == null) {}
+            widget.onClickOut(inputData);
+          },
+          keyboardType: TextInputType.text,
+          maxLines: null,
+          focusNode: _focusNode,
+          controller: fieldController,
+          onEditingComplete: () {
+            print("onEditingComplete");
+            FocusScope.of(context).nextFocus();
 
-          // onInputChanged(controller.text);
-        },
-        textAlignVertical: TextAlignVertical.center,
-        // textInputAction: TextInputAction.next,
-        style: const TextStyle(
-          color: Colors.white,
-        ),
-        onChanged: (value) {
-          if (inputData.displayString.isNotEmpty) {
-            if (value.contains(inputData.displayString)) {
-              var cutValue =
-                  value.substring(inputData.displayString.length, value.length);
-              var sets = cutValue.split(RegExp(r'[^0-9]')).first;
-              var reps = cutValue.split(RegExp(r'[^0-9]')).elementAt(1);
-              var weight = cutValue.split(RegExp(r'[^0-9]')).last;
-            } else {
-              setState(() {
-                inputData.exerciseId = '';
-              });
+            // onInputChanged(controller.text);
+          },
+          textAlignVertical: TextAlignVertical.center,
+          textInputAction: TextInputAction.next,
+          style: const TextStyle(
+            color: Colors.white,
+          ),
+          onChanged: (value) {
+            if (inputData.displayString.isNotEmpty) {
+              if (value.contains(inputData.displayString)) {
+                var cutValue = value.substring(
+                    inputData.displayString.length, value.length);
+                var sets = cutValue.split(RegExp(r'[^0-9]')).first;
+                var reps = cutValue.split(RegExp(r'[^0-9]')).elementAt(1);
+                var weight = cutValue.split(RegExp(r'[^0-9]')).last;
+              } else {
+                setState(() {
+                  inputData.exerciseId = '';
+                });
+              }
+
+              // regex extract number from string after Substring
             }
 
-            // regex extract number from string after Substring
-          }
-
-          if (value.length > 1) {
-            searchExercisesByName(value);
-          }
-        },
-        decoration: InputDecoration(
-          hintStyle: const TextStyle(color: Colors.white70),
-          hintText: "Add exercise",
-          border: InputBorder.none,
-          prefixIcon: ReorderableDragStartListener(
-            index: widget.itemIndex,
-            child: GestureDetector(
-              child: const Icon(Icons.drag_handle),
-              onTapDown: (details) {
-                // what to do when moving the item
-                inputData.displayString = fieldController.text;
-                widget.onMove(inputData);
-                _focusNode.unfocus();
-              },
+            if (value.length > 1) {
+              searchExercisesByName(value);
+            }
+          },
+          decoration: InputDecoration(
+            hintStyle: const TextStyle(color: Colors.white70),
+            hintText: "Add exercise",
+            border: InputBorder.none,
+            prefixIcon: ReorderableDragStartListener(
+              index: widget.itemIndex,
+              child: GestureDetector(
+                child: const Icon(Icons.drag_handle),
+                onTapDown: (details) {
+                  // what to do when moving the item
+                  inputData.displayString = fieldController.text;
+                  widget.onMove(inputData);
+                  _focusNode.unfocus();
+                },
+              ),
             ),
           ),
         ),
