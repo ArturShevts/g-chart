@@ -43,7 +43,7 @@ class LocalItem {
   String displayString;
   String reps;
   String weight;
-  String quantity;
+  String sets;
 
   LocalItem({
     required this.exerciseId,
@@ -51,7 +51,7 @@ class LocalItem {
     required this.exerciseName,
     required this.reps,
     required this.weight,
-    required this.quantity,
+    required this.sets,
   });
 
   LocalItem copy(
@@ -60,7 +60,7 @@ class LocalItem {
           String? displayString,
           String? reps,
           String? weight,
-          String? quantity,
+          String? sets,
           bool? selected}) =>
       LocalItem(
         exerciseId: exerciseId ?? this.exerciseId,
@@ -68,7 +68,7 @@ class LocalItem {
         displayString: displayString ?? this.displayString,
         reps: reps ?? this.reps,
         weight: weight ?? this.weight,
-        quantity: quantity ?? this.quantity,
+        sets: sets ?? this.sets,
       );
 }
 
@@ -81,7 +81,7 @@ class _ListItemsFormState extends State<ListItemsForm> {
     exerciseName: '',
     reps: '',
     weight: '',
-    quantity: '',
+    sets: '',
   );
 
   @override
@@ -297,14 +297,32 @@ class _ListItemInputState extends State<ListItemInput>
     }
   }
 
+  void parseInput(String value) {
+    final intInStr = RegExp(r'\d+');
+    var sets = RegExp(r"(\d+) Sets").firstMatch(value)?.group(1);
+    var reps = RegExp(r"(\d+) Reps").firstMatch(value)?.group(1);
+    var weight = RegExp(r"(\d+) Kg").firstMatch(value)?.group(1);
+    setState(() {
+      if (sets != null) {
+        inputData.sets = intInStr.firstMatch(sets)?.group(0) ?? "";
+      } else {
+        inputData.sets = "";
+      }
+      if (reps != null) {
+        inputData.reps = intInStr.firstMatch(reps)?.group(0) ?? "";
+      } else {
+        inputData.reps = "";
+      }
+      if (weight != null) {
+        inputData.weight = intInStr.firstMatch(weight)?.group(0) ?? "";
+      } else {
+        inputData.weight = "";
+      }
+    });
+  }
+
   @override
   void dispose() {
-    // TODO: implement dispose
-    print("tapped1");
-    // _focusNode.dispose();
-    // _overlayEntry?.remove();
-    // _overlayState?.dispose();
-
     super.dispose();
   }
 
@@ -368,6 +386,14 @@ class _ListItemInputState extends State<ListItemInput>
         keyboardType: TextInputType.text,
         maxLines: null,
         focusNode: _focusNode,
+        inputFormatters: [
+          SetsRepsWeightTextInputFormatter(
+              exerciseString: inputData.exerciseName,
+              isReps: inputData.reps,
+              isSets: inputData.sets,
+              isWeight: inputData.weight)
+        ],
+
         controller: fieldController,
         onEditingComplete: () {
           print("onEditingComplete");
@@ -381,21 +407,7 @@ class _ListItemInputState extends State<ListItemInput>
           color: Colors.white,
         ),
         onChanged: (value) {
-          if (inputData.displayString.isNotEmpty) {
-            if (value.contains(inputData.displayString)) {
-              var cutValue =
-                  value.substring(inputData.displayString.length, value.length);
-              var sets = cutValue.split(RegExp(r'[^0-9]')).first;
-              var reps = cutValue.split(RegExp(r'[^0-9]')).elementAt(1);
-              var weight = cutValue.split(RegExp(r'[^0-9]')).last;
-            } else {
-              setState(() {
-                inputData.exerciseId = '';
-              });
-            }
-
-            // regex extract number from string after Substring
-          }
+          parseInput(value);
 
           if (value.length > 1) {
             searchExercisesByName(value);
@@ -420,5 +432,80 @@ class _ListItemInputState extends State<ListItemInput>
         ),
       ),
     );
+  }
+}
+
+// var cutValue =
+//                 value.substring(inputData.displayString.length, value.length);
+//             var sets = cutValue.split(RegExp(r'[^0-9][x]')).first
+//             var reps = cutValue.split(RegExp(r'[^0-9][x]')).elementAt(1);
+//             var weight = cutValue.split(RegExp(r'[^0-9][x]')).last;
+
+class SetsRepsWeightTextInputFormatter extends TextInputFormatter {
+  final String exerciseString;
+  final String isWeight;
+  final String isReps;
+  final String isSets;
+
+  SetsRepsWeightTextInputFormatter({
+    required this.exerciseString,
+    required this.isWeight,
+    required this.isReps,
+    required this.isSets,
+  }) {
+    assert(exerciseString != null);
+  }
+
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    var value = oldValue.text;
+
+    if (exerciseString.isNotEmpty) {
+//'${newValue.text.split(sets).first} $_sets Sets X'
+
+      if (value.contains(exerciseString)) {
+        var cutValue = value.substring(exerciseString.length, value.length);
+
+        var match = RegExp(r'[0-9]+x').allMatches(cutValue).isNotEmpty
+            ? RegExp(r'[0-9]+x').allMatches(cutValue).last.group(0)!
+            : '';
+        if (match.isNotEmpty) {
+          final intInStr = RegExp(r'\d+');
+
+          var matchQt = intInStr.firstMatch(match)?.group(0) ?? '';
+          var matchType = 'Sets';
+
+          if (isSets.isNotEmpty) {
+            matchType = 'Reps';
+          }
+          if (isReps.isNotEmpty) {
+            matchType = 'Kg';
+          }
+          if (isWeight.isEmpty) {
+            var textArr = value.split(match);
+            print(jsonEncode(textArr));
+
+            textArr.length > 1 ? textArr.removeLast() : null;
+            print(jsonEncode(textArr));
+            var newText = '${textArr.join()} $matchQt $matchType';
+            newValue = TextEditingValue(
+              text: newText,
+              selection: newText.length == newText.length
+                  ? TextSelection.collapsed(offset: newText.length)
+                  : TextSelection.collapsed(offset: newText.length - 1),
+            );
+          }
+        }
+      }
+    }
+
+    if (isWeight.isNotEmpty) {
+      if (newValue.text.length > oldValue.text.length) {
+        return oldValue;
+      }
+    }
+
+    return newValue;
   }
 }
