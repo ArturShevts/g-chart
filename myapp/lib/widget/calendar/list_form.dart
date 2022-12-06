@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myapp/model/local_item.dart';
 import 'package:myapp/widget/calendar/list_items_form.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:weekday_selector/weekday_selector.dart';
@@ -10,12 +11,15 @@ class ListInstanceFormWidget extends StatelessWidget {
   final bool isTemplate;
   final List<bool>? repeatOn;
   final int? repeatEvery;
+  final List<LocalItem>? localItems;
+  final int? listInstanceId;
   final ValueChanged<String> onChangedTitle;
   final ValueChanged<String> onChangedDescription;
   final ValueChanged<bool> onChangedIsPublic;
   final ValueChanged<bool> onChangedIsTemplate;
   final ValueChanged<List<bool>> onChangedRepeatOn;
   final ValueChanged<int> onChangedRepeatEvery;
+  final ValueChanged<List<LocalItem>> onChangedLocalItems;
 
   const ListInstanceFormWidget({
     Key? key,
@@ -25,12 +29,15 @@ class ListInstanceFormWidget extends StatelessWidget {
     this.isTemplate = false,
     this.repeatOn,
     this.repeatEvery,
+    this.localItems,
+    this.listInstanceId,
     required this.onChangedTitle,
     required this.onChangedDescription,
     required this.onChangedIsPublic,
     required this.onChangedIsTemplate,
     required this.onChangedRepeatOn,
     required this.onChangedRepeatEvery,
+    required this.onChangedLocalItems,
   }) : super(key: key);
 
   @override
@@ -114,7 +121,10 @@ class ListInstanceFormWidget extends StatelessWidget {
               ),
               buildRepeatEvery(),
               const SizedBox(height: 8),
-              ListItemsForm(listInstance: null),
+              ListItemsForm(
+                  listInstanceId: listInstanceId,
+                  localItems: localItems,
+                  onChangedLocalItems: setState()),
             ],
           ),
         ),

@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:myapp/core/utils/local_Item_converter.dart';
 import 'package:myapp/model/list_instance.dart';
+import 'package:myapp/model/local_item.dart';
 import 'package:myapp/widget/calendar/list_form.dart';
 
 class AddEditListPage extends StatefulWidget {
@@ -25,6 +27,7 @@ class _AddEditListPageState extends State<AddEditListPage> {
   late bool isTemplate;
   late List<bool> repeatOn;
   late int repeatEvery;
+  late List<LocalItem> localItems = [];
 
   @override
   void initState() {
@@ -39,6 +42,10 @@ class _AddEditListPageState extends State<AddEditListPage> {
     repeatEvery = widget.listInstance?.repeatEvery != null
         ? widget.listInstance!.repeatEvery!
         : 0;
+
+    LocalItemConverter.instance
+        .listItemToLocalItem(widget.listInstance?.listItems ?? [])
+        .then((value) => localItems = value);
   }
 
   @override
@@ -57,6 +64,7 @@ class _AddEditListPageState extends State<AddEditListPage> {
               isTemplate: isTemplate,
               repeatOn: repeatOn,
               repeatEvery: repeatEvery,
+              localItems: localItems,
               onChangedTitle: (title) => setState(() => this.title = title),
               onChangedDescription: (description) =>
                   setState(() => this.description = description),
@@ -68,6 +76,8 @@ class _AddEditListPageState extends State<AddEditListPage> {
                   setState(() => this.repeatOn = repeatOn),
               onChangedRepeatEvery: (repeatEvery) =>
                   setState(() => this.repeatEvery = repeatEvery),
+              onChangedLocalItems: (localItems) =>
+                  setState(() => this.localItems = localItems),
             ),
           ),
         ),
