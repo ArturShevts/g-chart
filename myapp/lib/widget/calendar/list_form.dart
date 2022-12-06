@@ -4,7 +4,7 @@ import 'package:myapp/widget/calendar/list_items_form.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:weekday_selector/weekday_selector.dart';
 
-class ListInstanceFormWidget extends StatelessWidget {
+class ListInstanceFormWidget extends StatefulWidget {
   final String? title;
   final String? description;
   final bool isPublic;
@@ -41,6 +41,22 @@ class ListInstanceFormWidget extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<ListInstanceFormWidget> createState() => _ListInstanceFormWidgetState();
+}
+
+class _ListInstanceFormWidgetState extends State<ListInstanceFormWidget> {
+  List<LocalItem> items = [];
+
+  @override
+  void initState() {}
+
+  sendItems() {
+    print(
+        "sendItems called ${widget.localItems?.length}  and sent:${items.length}");
+    widget.onChangedLocalItems(items);
+  }
+
+  @override
   Widget build(BuildContext context) => SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -50,8 +66,8 @@ class ListInstanceFormWidget extends StatelessWidget {
               Row(
                 children: [
                   Switch(
-                    value: isTemplate,
-                    onChanged: onChangedIsTemplate,
+                    value: widget.isTemplate,
+                    onChanged: widget.onChangedIsTemplate,
                   ),
                   const Text(
                     'Make List a Template?',
@@ -63,12 +79,12 @@ class ListInstanceFormWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              if (isTemplate)
+              if (widget.isTemplate)
                 Row(
                   children: [
                     Switch(
-                      value: isPublic,
-                      onChanged: onChangedIsPublic,
+                      value: widget.isPublic,
+                      onChanged: widget.onChangedIsPublic,
                     ),
                     const Text(
                       'Make Template Public?',
@@ -89,11 +105,11 @@ class ListInstanceFormWidget extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.all(8.0),
                     child: Text(
-                      repeatEvery == 0
-                          ? repeatOn!.contains(true)
+                      widget.repeatEvery == 0
+                          ? widget.repeatOn!.contains(true)
                               ? 'Repeat on days:'
                               : 'Never Repeat'
-                          : 'Repeat every $repeatEvery days',
+                          : 'Repeat every ${widget.repeatEvery} days',
                       textAlign: TextAlign.left,
                       style: const TextStyle(
                         color: Colors.white70,
@@ -122,9 +138,17 @@ class ListInstanceFormWidget extends StatelessWidget {
               buildRepeatEvery(),
               const SizedBox(height: 8),
               ListItemsForm(
-                  listInstanceId: listInstanceId,
-                  localItems: localItems,
-                  onChangedLocalItems: setState()),
+                listInstanceId: widget.listInstanceId,
+                localItems: widget.localItems,
+                onChangedLocalItems: (items) {
+                  print("onChangedLocalItems called by listitemsform $items");
+                  setState(() {
+                    this.items = items;
+                  });
+                  this.items = items;
+                  sendItems();
+                },
+              ),
             ],
           ),
         ),
@@ -132,7 +156,7 @@ class ListInstanceFormWidget extends StatelessWidget {
 
   Widget buildTitle() => TextFormField(
         maxLines: 1,
-        initialValue: title,
+        initialValue: widget.title,
         style: const TextStyle(
           color: Colors.white70,
           fontWeight: FontWeight.bold,
@@ -145,12 +169,12 @@ class ListInstanceFormWidget extends StatelessWidget {
         ),
         validator: (title) =>
             title != null && title.isEmpty ? 'The title cannot be empty' : null,
-        onChanged: onChangedTitle,
+        onChanged: widget.onChangedTitle,
       );
 
   Widget buildDescription() => TextFormField(
         maxLines: 5,
-        initialValue: description,
+        initialValue: widget.description,
         style: const TextStyle(color: Colors.white60, fontSize: 18),
         decoration: const InputDecoration(
           border: InputBorder.none,
@@ -160,27 +184,28 @@ class ListInstanceFormWidget extends StatelessWidget {
         validator: (title) => title != null && title.isEmpty
             ? 'The description cannot be empty'
             : null,
-        onChanged: onChangedDescription,
+        onChanged: widget.onChangedDescription,
       );
 
   Widget buildRepeatOnWeekdays() => WeekdaySelector(
         onChanged: (day) {
           final index = day % 7;
 
-          repeatOn![index] = !repeatOn![index];
-          onChangedRepeatOn(repeatOn!);
-          onChangedRepeatEvery(0);
+          widget.repeatOn![index] = !widget.repeatOn![index];
+          widget.onChangedRepeatOn(widget.repeatOn!);
+          widget.onChangedRepeatEvery(0);
         },
-        values: repeatOn!,
+        values: widget.repeatOn!,
       );
 
   Widget buildRepeatEvery() => NumberPicker(
-        value: repeatEvery!,
+        value: widget.repeatEvery!,
         minValue: 0,
         maxValue: 63,
         onChanged: (value) {
-          onChangedRepeatEvery(value);
-          onChangedRepeatOn([false, false, false, false, false, false, false]);
+          widget.onChangedRepeatEvery(value);
+          widget.onChangedRepeatOn(
+              [false, false, false, false, false, false, false]);
         },
         axis: Axis.horizontal,
         textStyle: const TextStyle(

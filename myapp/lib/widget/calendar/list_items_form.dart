@@ -28,6 +28,7 @@ class ListItemsForm extends StatefulWidget {
 class _ListItemsFormState extends State<ListItemsForm> {
   List<LocalItem> listItems = [];
   int? activeIndex;
+
   LocalItem emptyLocalItem = LocalItem(
     exerciseId: '',
     displayString: '',
@@ -43,11 +44,25 @@ class _ListItemsFormState extends State<ListItemsForm> {
 
   @override
   void initState() {
+    super.initState();
+
+    ValueNotifier<List<LocalItem>> _listItems =
+        ValueNotifier<List<LocalItem>>(listItems);
+    _listItems.addListener(() {
+      print("listItems changed");
+      widget.onChangedLocalItems(listItems);
+    });
+
     var emptyItem = emptyLocalItem.copy();
 
     listItems = [emptyItem];
-    var activeIndex = listItems.length - 1;
-    super.initState();
+    activeIndex = listItems.length - 1;
+  }
+
+  void sendItems() {
+    print(
+        "sendItems called ${widget.localItems?.length}  and sent:${listItems.length}");
+    widget.onChangedLocalItems(listItems);
   }
 
   @override
@@ -92,6 +107,7 @@ class _ListItemsFormState extends State<ListItemsForm> {
                   onRemove: (value) {
                     setState(() {
                       listItems.removeAt(index);
+                      sendItems();
                     });
                   },
                   onClickEnter: (item) {
@@ -100,6 +116,7 @@ class _ListItemsFormState extends State<ListItemsForm> {
                       var newItem = emptyLocalItem.copy();
                       listItems.insert(index + 1, newItem);
                       activeIndex = index + 1;
+                      sendItems();
                     });
                   },
                   onInputValid: (i) {},
@@ -113,6 +130,7 @@ class _ListItemsFormState extends State<ListItemsForm> {
                 }
                 final LocalItem item = listItems.removeAt(oldIndex);
                 listItems.insert(newIndex, item);
+                sendItems();
               });
             }),
           ),

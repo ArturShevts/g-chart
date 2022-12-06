@@ -31,4 +31,21 @@ class LocalItem {
         weight: weight ?? this.weight,
         sets: sets ?? this.sets,
       );
+
+  LocalItem.fromJson(Map<String, dynamic> json)
+      : exerciseId = json['exerciseId'],
+        exerciseName = json['exerciseName'],
+        displayString = json['displayString'],
+        reps = json['reps'],
+        weight = json['weight'],
+        sets = json['sets'];
+
+  Map<String, dynamic> toJson() => {
+        'exerciseId': exerciseId,
+        'exerciseName': exerciseName,
+        'displayString': displayString,
+        'reps': reps,
+        'weight': weight,
+        'sets': sets,
+      };
 }

@@ -58,27 +58,29 @@ class _AddEditListPageState extends State<AddEditListPage> {
           child: Form(
             key: _formKey,
             child: ListInstanceFormWidget(
-              title: title,
-              description: description,
-              isPublic: isPublic,
-              isTemplate: isTemplate,
-              repeatOn: repeatOn,
-              repeatEvery: repeatEvery,
-              localItems: localItems,
-              onChangedTitle: (title) => setState(() => this.title = title),
-              onChangedDescription: (description) =>
-                  setState(() => this.description = description),
-              onChangedIsPublic: (isPublic) =>
-                  setState(() => this.isPublic = isPublic),
-              onChangedIsTemplate: (isTemplate) =>
-                  setState(() => this.isTemplate = isTemplate),
-              onChangedRepeatOn: (repeatOn) =>
-                  setState(() => this.repeatOn = repeatOn),
-              onChangedRepeatEvery: (repeatEvery) =>
-                  setState(() => this.repeatEvery = repeatEvery),
-              onChangedLocalItems: (localItems) =>
-                  setState(() => this.localItems = localItems),
-            ),
+                title: title,
+                description: description,
+                isPublic: isPublic,
+                isTemplate: isTemplate,
+                repeatOn: repeatOn,
+                repeatEvery: repeatEvery,
+                localItems: localItems,
+                onChangedTitle: (title) => setState(() => this.title = title),
+                onChangedDescription: (description) =>
+                    setState(() => this.description = description),
+                onChangedIsPublic: (isPublic) =>
+                    setState(() => this.isPublic = isPublic),
+                onChangedIsTemplate: (isTemplate) =>
+                    setState(() => this.isTemplate = isTemplate),
+                onChangedRepeatOn: (repeatOn) =>
+                    setState(() => this.repeatOn = repeatOn),
+                onChangedRepeatEvery: (repeatEvery) =>
+                    setState(() => this.repeatEvery = repeatEvery),
+                onChangedLocalItems: (localItems) => {
+                      print(
+                          "setState in editDayPAge called ${localItems.length}"),
+                      setState(() => this.localItems = localItems),
+                    }),
           ),
         ),
       );
@@ -100,19 +102,24 @@ class _AddEditListPageState extends State<AddEditListPage> {
   }
 
   void addOrUpdateListInstance() async {
-    final isValid = _formKey.currentState!.validate();
-
-    if (isValid) {
-      final isUpdating = widget.listInstance != null;
-
-      if (isUpdating) {
-        await updateListInstance();
-      } else {
-        await addListInstance();
-      }
-
-      Navigator.of(context).pop();
+    print("clicked save ${localItems.length}");
+    for (var i = 0; i < localItems.length; i++) {
+      print(localItems[i].toJson());
     }
+
+    // final isValid = _formKey.currentState!.validate();
+
+    // if (isValid) {
+    //   final isUpdating = widget.listInstance != null;
+
+    //   if (isUpdating) {
+    //     await updateListInstance();
+    //   } else {
+    //     await addListInstance();
+    //   }
+
+    //   Navigator.of(context).pop();
+    // }
   }
 
   Future updateListInstance() async {
