@@ -40,8 +40,7 @@ class _CalendarsPageState extends State<CalendarsPage> {
 
   Future refreshCalendars() async {
     setState(() => isLoading = true);
-    listInstances =
-        await ListInstancesService.instance.readAllAssignedListInstances();
+    listInstances = await ListInstancesService.instance.readAllListInstances();
 
     final today = DateTime.now();
     final firstDayOfWeek = today.subtract(Duration(days: today.weekday - 1));
@@ -65,9 +64,10 @@ class _CalendarsPageState extends State<CalendarsPage> {
         ? instance.repeatOn![date.weekday - 1]
         : false;
 
-    bool isRepeatedEvery = instance.repeatEvery != null
-        ? daysBetween(date, DateTime.now()) % instance.repeatEvery! == 0
-        : false;
+    bool isRepeatedEvery =
+        instance.repeatEvery != null && instance.repeatEvery! > 0
+            ? daysBetween(date, DateTime.now()) % instance.repeatEvery! == 0
+            : false;
 
     return isRepeatedOn || isRepeatedEvery;
   }

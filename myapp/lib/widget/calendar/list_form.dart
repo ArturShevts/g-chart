@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/model/local_item.dart';
-import 'package:myapp/widget/calendar/list_items_form.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:weekday_selector/weekday_selector.dart';
 
@@ -11,15 +9,12 @@ class ListInstanceFormWidget extends StatefulWidget {
   final bool isTemplate;
   final List<bool>? repeatOn;
   final int? repeatEvery;
-  final List<LocalItem>? localItems;
-  final int? listInstanceId;
   final ValueChanged<String> onChangedTitle;
   final ValueChanged<String> onChangedDescription;
   final ValueChanged<bool> onChangedIsPublic;
   final ValueChanged<bool> onChangedIsTemplate;
   final ValueChanged<List<bool>> onChangedRepeatOn;
   final ValueChanged<int> onChangedRepeatEvery;
-  final ValueChanged<List<LocalItem>> onChangedLocalItems;
 
   const ListInstanceFormWidget({
     Key? key,
@@ -29,15 +24,12 @@ class ListInstanceFormWidget extends StatefulWidget {
     this.isTemplate = false,
     this.repeatOn,
     this.repeatEvery,
-    this.localItems,
-    this.listInstanceId,
     required this.onChangedTitle,
     required this.onChangedDescription,
     required this.onChangedIsPublic,
     required this.onChangedIsTemplate,
     required this.onChangedRepeatOn,
     required this.onChangedRepeatEvery,
-    required this.onChangedLocalItems,
   }) : super(key: key);
 
   @override
@@ -45,32 +37,40 @@ class ListInstanceFormWidget extends StatefulWidget {
 }
 
 class _ListInstanceFormWidgetState extends State<ListInstanceFormWidget> {
-  List<LocalItem> items = [];
-
   @override
   void initState() {}
 
-  sendItems() {
-    print(
-        "sendItems called ${widget.localItems?.length}  and sent:${items.length}");
-    widget.onChangedLocalItems(items);
-  }
-
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Switch(
+                  value: widget.isTemplate,
+                  onChanged: widget.onChangedIsTemplate,
+                ),
+                const Text(
+                  'Make List a Template?',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            if (widget.isTemplate)
               Row(
                 children: [
                   Switch(
-                    value: widget.isTemplate,
-                    onChanged: widget.onChangedIsTemplate,
+                    value: widget.isPublic,
+                    onChanged: widget.onChangedIsPublic,
                   ),
                   const Text(
-                    'Make List a Template?',
+                    'Make Template Public?',
                     style: TextStyle(
                       color: Colors.white70,
                       fontWeight: FontWeight.bold,
@@ -79,78 +79,48 @@ class _ListInstanceFormWidgetState extends State<ListInstanceFormWidget> {
                   ),
                 ],
               ),
-              if (widget.isTemplate)
-                Row(
-                  children: [
-                    Switch(
-                      value: widget.isPublic,
-                      onChanged: widget.onChangedIsPublic,
+            buildTitle(),
+            const SizedBox(height: 8),
+            buildDescription(),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    widget.repeatEvery == 0
+                        ? widget.repeatOn!.contains(true)
+                            ? 'Repeat on days:'
+                            : 'Never Repeat'
+                        : 'Repeat every ${widget.repeatEvery} days',
+                    textAlign: TextAlign.left,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 20,
                     ),
-                    const Text(
-                      'Make Template Public?',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              buildTitle(),
-              const SizedBox(height: 8),
-              buildDescription(),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      widget.repeatEvery == 0
-                          ? widget.repeatOn!.contains(true)
-                              ? 'Repeat on days:'
-                              : 'Never Repeat'
-                          : 'Repeat every ${widget.repeatEvery} days',
-                      textAlign: TextAlign.left,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 20,
-                      ),
+              ],
+            ),
+            buildRepeatOnWeekdays(),
+            const SizedBox(height: 8),
+            Row(
+              children: const [
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    "Select Interval:",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 18,
                     ),
                   ),
-                ],
-              ),
-              buildRepeatOnWeekdays(),
-              const SizedBox(height: 8),
-              Row(
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      "Select Interval:",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              buildRepeatEvery(),
-              const SizedBox(height: 8),
-              ListItemsForm(
-                listInstanceId: widget.listInstanceId,
-                localItems: widget.localItems,
-                onChangedLocalItems: (items) {
-                  print("onChangedLocalItems called by listitemsform $items");
-                  setState(() {
-                    this.items = items;
-                  });
-                  this.items = items;
-                  sendItems();
-                },
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+            buildRepeatEvery(),
+            const SizedBox(height: 8),
+          ],
         ),
       );
 

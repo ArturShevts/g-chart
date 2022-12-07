@@ -17,7 +17,7 @@ class DatabaseBuilder {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('notes50.db');
+    _database = await _initDB('notes60.db');
     return _database!;
   }
 
@@ -42,7 +42,7 @@ class DatabaseBuilder {
     await db.execute(listInstanceCreateQuery);
     await db.execute(listItemCreateQuery);
     await db.execute(eventsCreateQuery);
-    await db.execute(listInstanceFillWithDummyDataQuery);
+    // await db.execute(listInstanceFillWithDummyDataQuery);
     await db.execute(listItemFillWithDummyDataQuery);
     await db.execute(exercisesInsertDataQuery);
   }

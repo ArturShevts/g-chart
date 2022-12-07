@@ -14,8 +14,12 @@ class ListInstancesService {
   ListInstancesService._init();
 
   Future<ListInstance> create(ListInstance listInstance) async {
+    print("create ListInstance service ${listInstance.toJson()}");
+
     final db = await DatabaseBuilder.instance.database;
     final id = await db.insert(tableListInstances, listInstance.toJson());
+    print("create ListInstance service $id");
+
     return listInstance.copy(id: id);
   }
 
@@ -37,13 +41,18 @@ class ListInstancesService {
   }
 
   Future<List<ListInstance>> readAllListInstances() async {
+    print("readAllListInstances service");
+
     final db = await DatabaseBuilder.instance.database;
 
     const orderBy = '${ListInstanceFields.createdTime} ASC';
 
     final result = await db.query(tableListInstances, orderBy: orderBy);
 
-    return result.map((json) => ListInstance.fromJson(json)).toList();
+    return result.map((json) {
+      print(json);
+      return ListInstance.fromJson(json);
+    }).toList();
   }
 
   Future<List<ListInstance>> readAllListInstanceTemplates() async {

@@ -30,7 +30,8 @@ class LocalItemConverter {
 
   LocalItemConverter._init();
 
-  List<ListItem> localItemToListItem(List<LocalItem> localItems, int listId) {
+  List<ListItem> localItemToListItem(
+      List<LocalItem> localItems, int listInstanceId) {
     List<ListItem> listItems = [];
     for (var i = 0; i < localItems.length; i++) {
       var item = localItems[i];
@@ -43,7 +44,7 @@ class LocalItemConverter {
         quantity: int.parse(item.reps),
         weight: int.parse(item.weight),
         sets: int.parse(item.sets),
-        listInstanceId: listId,
+        listInstanceId: listInstanceId,
         userId: 1, //add user handling,
         isCompleted: false,
         orderNum: i,

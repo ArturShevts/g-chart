@@ -8,8 +8,12 @@ class ListItemsService {
   ListItemsService._init();
 
   Future<ListItem> create(ListItem listItem) async {
+    print("create ListItem service ${listItem.toJson()}");
+
     final db = await DatabaseBuilder.instance.database;
     final id = await db.insert(tableListItems, listItem.toJson());
+    print("create ListItem service ${id}");
+
     return listItem.copy(id: id);
   }
 

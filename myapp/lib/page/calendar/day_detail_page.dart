@@ -12,7 +12,7 @@ import 'package:myapp/model/list_item.dart';
 import 'package:myapp/widget/calendar/new_list_modal.dart';
 // import '../../db/day/days_database.dart';
 // import '../../model/day.dart';
-import 'edit_day_page.dart';
+import 'edit_list_page.dart';
 
 class DayDetailPage extends StatefulWidget {
   final DateTime day;
@@ -57,7 +57,9 @@ class _DayDetailPageState extends State<DayDetailPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          actions: [addButton()],
+          actions: [
+            addButton(),
+          ],
         ),
         body: isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -75,20 +77,39 @@ class _DayDetailPageState extends State<DayDetailPage> {
                                   child: Column(children: [
                                     Row(
                                       children: [
-                                        Text(
-                                          '${list.title}, ${MediaQuery.of(context).size.height}',
-                                          style: TextStyle(
-                                              color: Colors.grey.shade900,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold),
+                                        Expanded(
+                                          child: Text(
+                                            '${list.title}',
+                                            style: TextStyle(
+                                                color: Colors.grey.shade900,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold),
+                                          ),
                                         ),
-                                        Text(
-                                          '${list.description}',
-                                          style: TextStyle(
-                                              color: Colors.grey.shade800,
-                                              fontSize: 14),
+
+                                        Align(
+                                          alignment: Alignment.centerRight,
+                                          child: Expanded(
+                                            child: editButton(list),
+                                          ),
+                                        )
+                                        //
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            '${list.description} ',
+                                            style: TextStyle(
+                                                color: Colors.grey.shade800,
+                                                fontSize: 14),
+                                          ),
                                         ),
                                       ],
+                                    ),
+                                    const SizedBox(
+                                      height: 30,
                                     ),
                                     ...?list.listItems?.map((item) {
                                       return Row(
@@ -134,6 +155,18 @@ class _DayDetailPageState extends State<DayDetailPage> {
 
         await Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => AddEditListPage(day: day),
+        ));
+
+        refreshItems();
+      });
+
+  Widget editButton(ListInstance list) => IconButton(
+      icon: const Icon(Icons.edit),
+      onPressed: () async {
+        if (isLoading) return;
+
+        await Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => AddEditListPage(day: day, listInstance: list),
         ));
 
         refreshItems();

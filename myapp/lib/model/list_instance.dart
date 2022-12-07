@@ -132,10 +132,12 @@ class ListInstance {
         isTemplate: json[ListInstanceFields.isTemplate] == 1,
         repeatEvery: json[ListInstanceFields.repeatEvery] as int?,
         repeatOn: json[ListInstanceFields.repeatOn] != null
-            ? (jsonDecode(json[ListInstanceFields.repeatOn] as String)
-                    as List<dynamic>)
-                .map((e) => e as bool)
-                .toList()
+            ? () {
+                var decoded =
+                    jsonDecode(json[ListInstanceFields.repeatOn].toString());
+                print(decoded);
+                return (decoded as List<dynamic>).map((e) => (e == 1)).toList();
+              }()
             : null,
       );
 
@@ -152,6 +154,6 @@ class ListInstance {
         ListInstanceFields.isPublic: isPublic ? 1 : 0,
         ListInstanceFields.isTemplate: isTemplate ? 1 : 0,
         ListInstanceFields.repeatEvery: repeatEvery,
-        ListInstanceFields.repeatOn: repeatOn?.map((e) => e ? 1 : 0),
+        ListInstanceFields.repeatOn: repeatOn?.map((e) => e ? 1 : 0).toList(),
       };
 }
