@@ -6,7 +6,7 @@ G-Chart
 1. Web – Vue 
 1. Mobile – Android – Flutter  
 1. Mobile – IOS – Swift  
-1. Database – Redis  
+1. Database – Redis/ SQL  
 1. API – GO 
 # REST API Structure
 - CRUD 
